@@ -34,19 +34,18 @@
 <body>
     <div class="container">
         <h1>[§] Vexis // Universal Code Protector</h1>
-        <p class="sub">Blindaje de código multi-lenguaje (Lua, JavaScript, Python, HTML, etc.)</p>
+        <p class="sub">Blindaje de código multi-lenguaje ultra compatible</p>
 
         <div class="section">
             <label>&gt; SELECCIONAR LENGUAJE / ENTORNO:</label>
             <select id="targetLanguage">
-                <option value="lua">Lua / Luau (Roblox / FiveM)</option>
+                <option value="lua">Lua / Luau (Roblox / Delta / FiveM)</option>
                 <option value="js">JavaScript (Node.js / Web)</option>
                 <option value="python">Python (Scripts / Automatización)</option>
-                <option value="raw">Crudo / Genérico (Solo Bytes y Clave)</option>
             </select>
 
-            <label>&gt; CÓDIGO DE ENTRADA (CUALQUIER TEXTO O CÓDIGO):</label>
-            <textarea id="inputCode" placeholder="Pega aquí tu código, script, HTML o texto a proteger..."></textarea>
+            <label>&gt; CÓDIGO DE ENTRADA:</label>
+            <textarea id="inputCode" placeholder="Pega aquí tu código a proteger..."></textarea>
             
             <div class="btn-group">
                 <button onclick="protectCode()">BLINDAR CÓDIGO</button>
@@ -75,21 +74,19 @@
             }
 
             try {
-                // 1. Codificación segura a bytes UTF-8 (soporte total de emojis y caracteres especiales)
                 const encoder = new TextEncoder();
                 const rawBytes = encoder.encode(input);
                 
-                // 2. Aplicar capa XOR con clave aleatoria
-                const key = Math.floor(Math.random() * 200) + 10;
+                // Usamos una clave de desplazamiento simple (suma/resta de bytes) que tiene compatibilidad absoluta en Lua viejo y nuevo
+                const key = Math.floor(Math.random() * 50) + 5;
                 let obfuscatedBytes = [];
                 for (let i = 0; i < rawBytes.length; i++) {
-                    obfuscatedBytes.push((rawBytes[i] ^ key) & 0xFF);
+                    obfuscatedBytes.push((rawBytes[i] + key) & 0xFF);
                 }
 
                 let byteArrayStr = obfuscatedBytes.join(',');
                 let finalOutput = "";
 
-                // 3. Generar la estructura contenedora según el lenguaje elegido
                 if (lang === 'lua') {
                     finalOutput = `--[[
     VEXIS UNIVERSAL PROTECTOR (LUA)
@@ -99,12 +96,17 @@ local _B = {${byteArrayStr}}
 local function _R()
     local t = {}
     for i = 1, #_B do
-        local b = bit32 and bit32.bxor(_B[i], _K) or (_B[i] ~ _K)
-        table.insert(t, string.char(b))
+        local b = (_B[i] - _K) % 256
+        t[i] = string.char(b)
     end
     local s = table.concat(t)
     local f, err = loadstring(s)
-    if f then pcall(f) else warn("Vexis Error: " .. tostring(err)) end
+    if f then 
+        local success, res = pcall(f)
+        if not success then warn("Vexis Runtime Error: " .. tostring(res)) end
+    else 
+        warn("Vexis Compile Error: " .. tostring(err)) 
+    end
 end
 _R()`;
                 } else if (lang === 'js') {
@@ -113,7 +115,7 @@ _R()`;
     const _K = ${key};
     const _B = [${byteArrayStr}];
     try {
-        let bytes = new Uint8Array(_B.map(b => b ^ _K));
+        let bytes = new Uint8Array(_B.map(b => (b - _K + 256) % 256));
         let code = new TextDecoder().decode(bytes);
         Function(code)();
     } catch(e) {
@@ -122,14 +124,12 @@ _R()`;
 })();`;
                 } else if (lang === 'python') {
                     finalOutput = `# VEXIS UNIVERSAL PROTECTOR (PYTHON)
-import base64
-
 _K = ${key}
 _B = [${byteArrayStr}]
 
 def _run():
     try:
-        raw_bytes = bytes([b ^ _K for b in _B])
+        raw_bytes = bytes([(b - _K) % 256 for b in _B])
         code = raw_bytes.decode('utf-8')
         exec(code)
     except Exception as e:
@@ -137,9 +137,6 @@ def _run():
 
 if __name__ == '__main__':
     _run()`;
-                } else {
-                    // Formato crudo por si quiere usarlo en otros lados
-                    finalOutput = `// VEXIS RAW PAYLOAD\nKey: ${key}\nBytes: [${byteArrayStr}]`;
                 }
 
                 document.getElementById('outputCode').value = finalOutput;
