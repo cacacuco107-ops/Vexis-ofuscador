@@ -34,18 +34,11 @@
 <body>
     <div class="container">
         <h1>[§] Vexis // Universal Code Protector</h1>
-        <p class="sub">Blindaje de código multi-lenguaje ultra compatible</p>
+        <p class="sub">Blindaje de código ultra compatible para Luau / Delta</p>
 
         <div class="section">
-            <label>&gt; SELECCIONAR LENGUAJE / ENTORNO:</label>
-            <select id="targetLanguage">
-                <option value="lua">Lua / Luau (Roblox / Delta / FiveM)</option>
-                <option value="js">JavaScript (Node.js / Web)</option>
-                <option value="python">Python (Scripts / Automatización)</option>
-            </select>
-
             <label>&gt; CÓDIGO DE ENTRADA:</label>
-            <textarea id="inputCode" placeholder="Pega aquí tu código a proteger..."></textarea>
+            <textarea id="inputCode" placeholder="Pega aquí tu script de Roblox..."></textarea>
             
             <div class="btn-group">
                 <button onclick="protectCode()">BLINDAR CÓDIGO</button>
@@ -67,7 +60,6 @@
     <script>
         function protectCode() {
             const input = document.getElementById('inputCode').value;
-            const lang = document.getElementById('targetLanguage').value;
             if (!input) {
                 alert("¡Pega algo de código primero!");
                 return;
@@ -77,67 +69,37 @@
                 const encoder = new TextEncoder();
                 const rawBytes = encoder.encode(input);
                 
-                // Usamos una clave de desplazamiento simple (suma/resta de bytes) que tiene compatibilidad absoluta en Lua viejo y nuevo
-                const key = Math.floor(Math.random() * 50) + 5;
+                // Clave de desplazamiento aritmética segura
+                const key = Math.floor(Math.random() * 40) + 10;
                 let obfuscatedBytes = [];
                 for (let i = 0; i < rawBytes.length; i++) {
                     obfuscatedBytes.push((rawBytes[i] + key) & 0xFF);
                 }
 
                 let byteArrayStr = obfuscatedBytes.join(',');
-                let finalOutput = "";
 
-                if (lang === 'lua') {
-                    finalOutput = `--[[
-    VEXIS UNIVERSAL PROTECTOR (LUA)
+                let finalOutput = `--[[
+    VEXIS PROTECTED GUARD // ROBLOX / DELTA
 ]]--
 local _K = ${key}
 local _B = {${byteArrayStr}}
 local function _R()
     local t = {}
     for i = 1, #_B do
-        local b = (_B[i] - _K) % 256
-        t[i] = string.char(b)
+        t[i] = string.char((_B[i] - _K) % 256)
     end
     local s = table.concat(t)
     local f, err = loadstring(s)
     if f then 
         local success, res = pcall(f)
-        if not success then warn("Vexis Runtime Error: " .. tostring(res)) end
+        if not success then 
+            warn("Vexis Runtime Error: " .. tostring(res)) 
+        end
     else 
         warn("Vexis Compile Error: " .. tostring(err)) 
     end
 end
 _R()`;
-                } else if (lang === 'js') {
-                    finalOutput = `/* VEXIS UNIVERSAL PROTECTOR (JAVASCRIPT) */
-(function() {
-    const _K = ${key};
-    const _B = [${byteArrayStr}];
-    try {
-        let bytes = new Uint8Array(_B.map(b => (b - _K + 256) % 256));
-        let code = new TextDecoder().decode(bytes);
-        Function(code)();
-    } catch(e) {
-        console.error("Vexis Runtime Error:", e);
-    }
-})();`;
-                } else if (lang === 'python') {
-                    finalOutput = `# VEXIS UNIVERSAL PROTECTOR (PYTHON)
-_K = ${key}
-_B = [${byteArrayStr}]
-
-def _run():
-    try:
-        raw_bytes = bytes([(b - _K) % 256 for b in _B])
-        code = raw_bytes.decode('utf-8')
-        exec(code)
-    except Exception as e:
-        print(f"Vexis Error: {e}")
-
-if __name__ == '__main__':
-    _run()`;
-                }
 
                 document.getElementById('outputCode').value = finalOutput;
             } catch (err) {
@@ -161,14 +123,11 @@ if __name__ == '__main__':
         function downloadCode() {
             const code = document.getElementById('outputCode').value;
             if (!code) return;
-            const lang = document.getElementById('targetLanguage').value;
-            const ext = lang === 'python' ? 'py' : (lang === 'js' ? 'js' : 'txt');
-            
             const blob = new Blob([code], { type: 'text/plain' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = `vexis_protected.${ext}`;
+            a.download = 'vexis_protected.lua';
             a.click();
             URL.revokeObjectURL(url);
         }
