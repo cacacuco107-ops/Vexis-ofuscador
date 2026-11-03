@@ -250,15 +250,17 @@
             if (!input) return;
 
             try {
-                let payload = btoa(unescape(encodeURIComponent(input)));
+                // Conversión segura de UTF-8 a Base64 para evitar errores en móviles
+                let base64 = btoa(encodeURIComponent(input).replace(/%([0-9A-F]{2})/g, function(match, p1) {
+                    return String.fromCharCode('0x' + p1);
+                }));
+
+                let payload = base64;
 
                 if (level === 'medium') {
-                    payload = payload.split('').reverse().join('');
+                    payload = base64.split('').reverse().join('');
                 } else if (level === 'advanced') {
-                    payload = btoa(unescape(encodeURIComponent(input)))
-                        .split('')
-                        .map(c => String.fromCharCode(c.charCodeAt(0) + 2))
-                        .join('');
+                    payload = base64.split('').map(c => String.fromCharCode(c.charCodeAt(0) + 2)).join('');
                 }
 
                 let protectedScript = `--[[
@@ -293,11 +295,16 @@ local function _D(p, l)
     end))
 end
 
-local success, code = pcall(function()
+local success, decoded = pcall(function()
     return _D(_V, _L)
 end)
 
-if success and code and #code > 0 then
+if success and decoded and #decoded > 0 then
+    -- Decodificación de URI para recuperar caracteres especiales y saltos de línea de forma limpia
+    local code = (decoded:gsub('%%(%x%x)', function(hex)
+        return string.char(tonumber(hex, 16))
+    end))
+    
     local f, err = loadstring(code)
     if f then
         f()
@@ -310,7 +317,7 @@ end
 `;
                 document.getElementById('outputCode').value = protectedScript;
                 updateCounter();
-            } catch (e) {
+            }창 catch (e) {
                 document.getElementById('outputCode').value = "[ERROR] Falló la protección del script.";
             }
         }
@@ -329,18 +336,20 @@ end
                 const level = levelMatch ? levelMatch[1] : 'basic';
 
                 let payload = match[1];
-                let decoded;
+                let base64 = payload;
 
-                if (level === 'basic') {
-                    decoded = decodeURIComponent(escape(atob(payload)));
-                } else if (level === 'medium') {
-                    decoded = decodeURIComponent(escape(atob(payload.split('').reverse().join(''))));
+                if (level === 'medium') {
+                    base64 = payload.split('').reverse().join('');
                 } else if (level === 'advanced') {
-                    const shifted = payload.split('').map(c => String.fromCharCode(c.charCodeAt(0) - 2)).join('');
-                    decoded = decodeURIComponent(escape(atob(shifted)));
+                    base64 = payload.split('').map(c => String.fromCharCode(c.charCodeAt(0) - 2)).join('');
                 }
 
-                document.getElementById('outputCode').value = decoded;
+                let decodedURI = atob(base64);
+                let originalCode = decodeURIComponent(decodedURI.split('').map(function(c) {
+                    return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+                }).join(''));
+
+                document.getElementById('outputCode').value = originalCode;
             } catch (e) {
                 document.getElementById('outputCode').value = "[ERROR] El código no tiene el formato de Vexis o está corrupto.";
             }
@@ -364,7 +373,7 @@ end
         }
 
         function clearFields() {
-            document.getElementById('inputCode').value = '';
+            document.getElementById('inputCode', '').value = '';
             document.getElementById('outputCode').value = '';
         }
 
@@ -377,3 +386,4 @@ end
     </script>
 </body>
 </html>
+
