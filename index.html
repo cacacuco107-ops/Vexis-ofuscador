@@ -250,7 +250,6 @@
             if (!input) return;
 
             try {
-                // Conversión segura de UTF-8 a Base64 para evitar errores en móviles
                 let base64 = btoa(encodeURIComponent(input).replace(/%([0-9A-F]{2})/g, function(match, p1) {
                     return String.fromCharCode('0x' + p1);
                 }));
@@ -300,7 +299,6 @@ local success, decoded = pcall(function()
 end)
 
 if success and decoded and #decoded > 0 then
-    -- Decodificación de URI para recuperar caracteres especiales y saltos de línea de forma limpia
     local code = (decoded:gsub('%%(%x%x)', function(hex)
         return string.char(tonumber(hex, 16))
     end))
@@ -309,7 +307,7 @@ if success and decoded and #decoded > 0 then
     if f then
         f()
     else
-        warn("[VEXIS] Error de compilacion: " .. tostring(err))
+        warn("[VEXIS] Error de compilacion: " + tostring(err))
     end
 else
     warn("[VEXIS] Error al decodificar el payload.")
@@ -317,7 +315,7 @@ end
 `;
                 document.getElementById('outputCode').value = protectedScript;
                 updateCounter();
-            }창 catch (e) {
+            } catch (e) {
                 document.getElementById('outputCode').value = "[ERROR] Falló la protección del script.";
             }
         }
@@ -373,7 +371,7 @@ end
         }
 
         function clearFields() {
-            document.getElementById('inputCode', '').value = '';
+            document.getElementById('inputCode').value = '';
             document.getElementById('outputCode').value = '';
         }
 
@@ -386,4 +384,3 @@ end
     </script>
 </body>
 </html>
-
