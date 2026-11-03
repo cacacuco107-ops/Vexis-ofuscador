@@ -77,6 +77,7 @@
             margin-top: 10px;
             font-size: 0.85rem;
             min-height: 22px;
+            word-break: break-all;
         }
         .success { color: var(--green); }
         .error { color: var(--red); }
@@ -86,7 +87,7 @@
 <body>
     <div class="container">
         <h1>[§] Vexis // Lua Protector</h1>
-        <div class="subtitle">Ofusca y desofusca tus scripts — ahora más robusto ✅</div>
+        <div class="subtitle">✅ Arreglada — ahora limpia caracteres automáticamente</div>
 
         <label>Nivel de protección:</label>
         <select id="level" class="level-select">
@@ -97,7 +98,7 @@
         <span id="autoDetect" class="auto-detect"></span>
 
         <label for="input">&gt; Código de entrada:</label>
-        <textarea id="input" placeholder="Pega aquí tu script, o el bloque completo protegido..."></textarea>
+        <textarea id="input" placeholder="Pega aquí tu script o el bloque protegido..."></textarea>
 
         <div class="btn-row">
             <button class="btn-obf" onclick="obfuscate()">🔒 OFUSCAR</button>
@@ -117,7 +118,7 @@
             const s = document.getElementById('status');
             s.textContent = text;
             s.className = 'status ' + (isError ? 'error' : 'success');
-            setTimeout(() => s.textContent = '', 5000);
+            setTimeout(() => s.textContent = '', 6000);
         }
 
         function cleanBase64(str) {
@@ -125,16 +126,26 @@
         }
 
         function autoDetectLevel(text) {
-            if (text.includes('NIVEL:advanced') || text.includes('NIVEL: ADVANCED')) return 'advanced';
-            if (text.includes('NIVEL:medium') || text.includes('NIVEL: MEDIUM')) return 'medium';
-            if (text.includes('NIVEL:basic') || text.includes('NIVEL: BASIC')) return 'basic';
+            if (/NIVEL:\s*advanced/i.test(text)) return 'advanced';
+            if (/NIVEL:\s*medium/i.test(text)) return 'medium';
+            if (/NIVEL:\s*basic/i.test(text)) return 'basic';
             return null;
         }
 
         function extractPayload(text) {
             let match = text.match(/"([\s\S]*?)"/);
-            if (match && match[1]) return cleanBase64(match[1]);
-            return cleanBase64(text);
+            let raw = match ? match[1] : text;
+            return cleanBase64(raw);
+        }
+
+        function safeAtob(str) {
+            try {
+                return atob(str);
+            } catch (e) {
+                let padded = str;
+                while (padded.length % 4 !== 0) padded += '=';
+                return atob(padded);
+            }
         }
 
         function obfuscate() {
@@ -175,10 +186,10 @@ return "${payload}"
             try {
                 const detected = autoDetectLevel(input);
                 const level = detected || document.getElementById('level').value;
-                document.getElementById('autoDetect').textContent = detected ? `✅ Nivel detectado automáticamente: ${level.toUpperCase()}` : '';
+                document.getElementById('autoDetect').textContent = detected ? `✅ Nivel detectado: ${level.toUpperCase()}` : '';
 
                 let payload = extractPayload(input);
-                if (!payload) throw new Error('No se encontró código válido');
+                if (!payload || payload.length < 4) throw new Error('No se encontró código válido');
 
                 if (level === 'medium') {
                     payload = payload.split('').reverse().join('');
@@ -188,11 +199,11 @@ return "${payload}"
                     ).join('');
                 }
 
-                const decoded = decodeURIComponent(escape(atob(payload)));
+                const decoded = decodeURIComponent(escape(safeAtob(payload)));
                 document.getElementById('output').value = decoded;
                 showStatus('✅ ¡Desofuscado correctamente!');
             } catch (e) {
-                showStatus('❌ Error: ' + e.message + ' — Asegúrate de pegar el bloque completo', true);
+                showStatus('❌ Error: ' + e.message, true);
             }
         }
 
