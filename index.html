@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Vexis // Roblox Script Protector & Obfuscator</title>
+    <title>Vexis // Roblox Script Protector & Deobfuscator</title>
     <style>
         :root {
             --bg-color: #0a0a0c;
@@ -55,7 +55,7 @@
         }
         textarea {
             width: 100%;
-            height: 160px;
+            height: 150px;
             background: #07080a;
             color: var(--accent-green);
             border: 1px solid var(--border-color);
@@ -104,22 +104,23 @@
 <body>
 
     <div class="container">
-        <h1>[§] Vexis Vault // Roblox Luau Guard</h1>
-        <div class="subtitle">Ofuscador con capa de seguridad anti-navegador y envoltura para loadstring.</div>
+        <h1>[§] Vexis Vault // Roblox Guard & Deobfuscator</h1>
+        <div class="subtitle">Protección anti-navegador y extracción de scripts protegidos.</div>
 
         <div class="section">
-            <label for="inputCode">&gt; SCRIPT ORIGINAL DE ROBLOX (LUA / LUAU):</label>
-            <textarea id="inputCode" placeholder="print('Hola Roblox!')"></textarea>
+            <label for="inputCode">&gt; CÓDIGO DE ENTRADA (Original o Protegido con Vexis):</label>
+            <textarea id="inputCode" placeholder="Pega aquí tu script limpio para protegerlo, o el script protegido de Vexis para revertirlo..."></textarea>
             
             <div class="btn-group">
                 <button onclick="obfuscateRobloxScript()">OFUSCAR & PROTEGER</button>
+                <button onclick="deobfuscateRobloxScript()" style="color: #00bbff; border-color: #00bbff;">DESOFUSCAR</button>
                 <button class="secondary" onclick="clearFields()">LIMPIAR</button>
             </div>
         </div>
 
         <div class="section output-box">
-            <label for="outputCode">&gt; SCRIPT PROTEGIDO (LISTO PARA LOADSTRING):</label>
-            <textarea id="outputCode" readonly placeholder="El código protegido aparecerá aquí..."></textarea>
+            <label for="outputCode">&gt; RESULTADO:</label>
+            <textarea id="outputCode" readonly placeholder="El resultado aparecerá aquí..."></textarea>
             <div class="btn-group" style="margin-top: 10px;">
                 <button onclick="copyToClipboard()">COPIAR AL PORTAPAPELES</button>
             </div>
@@ -132,10 +133,8 @@
             if (!input) return;
 
             try {
-                // Codificar el script original en Base64
                 let encodedData = btoa(encodeURIComponent(input));
 
-                // Plantilla del wrapper que se ejecuta en el cliente de Roblox
                 let protectedScript = `--[[\n` +
                     `    VEXIS PROTECTED GUARD // SECURE LOADSTRING\n` +
                     `    Acesso Restrito ao Cliente de Roblox\n` +
@@ -146,37 +145,50 @@
                     `end\n\n` +
                     `local _VexisPayload = "${encodedData}"\n\n` +
                     `local function _vexisRun()\n` +
-                    `    local rawBytes = syn and syn.crypt and syn.crypt.base64 and syn.crypt.base64.decode(_VexisPayload) or _VexisPayload\n` +
-                    `    -- Decodificacion segura en memoria\n` +
-                    `    local decoded = game:GetService("HttpService"):JSONDecode('"' .. rawBytes .. '"') -- fallback visual o parsing\n` +
-                    `    -- Nota: para entornos puramente estandar de loadstring con Base64 nativo del ejecutor:\n` +
-                    `    local func, err = loadstring(game:GetService("HttpService"):UrlEncode(_VexisPayload))\n` +
-                    `    if not func then\n` +
-                    `        -- Metodo estandar Base64 de soporte universal\n` +
-                    `        local b='ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'\n` +
-                    `        local function decode(data)\n` +
-                    `            data = string.gsub(data, '[^'..b..'=]', '')\n` +
-                    `            return (data:gsub('.', function(x)\n` +
-                    `                if (x == '=') then return '' end\n` +
-                    `                local r,f='',(b:find(x)-1)\n` +
-                    `                for i=6,1,-1 do r=r..(f%2^i-f%2^(i-1)>0 and '1' or '0') end\n` +
-                    `                return r;\n` +
-                    `            end):gsub('%d%d%d?%d?%d?%d?%d?%d?', function(x)\n` +
-                    `                if (#x ~= 8) then return '' end\n` +
-                    `                local c=0\n` +
-                    `                for i=1,8 do c=c+(x:sub(i,i)=='1' and 2^(8-i) or 0) end\n` +
-                    `                return string.char(c)\n` +
-                    `            end))\n` +
-                    `        end\n` +
-                    `        local realCode = decode("${encodedData}")\n` +
-                    `        return loadstring(realCode)()\n` +
+                    `    local b='ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'\n` +
+                    `    local function decode(data)\n` +
+                    `        data = string.gsub(data, '[^'..b..'=]', '')\n` +
+                    `        return (data:gsub('.', function(x)\n` +
+                    `            if (x == '=') then return '' end\n` +
+                    `            local r,f='',(b:find(x)-1)\n` +
+                    `            for i=6,1,-1 do r=r..(f%2^i-f%2^(i-1)>0 and '1' or '0') end\n` +
+                    `            return r;\n` +
+                    `        end):gsub('%d%d%d?%d?%d?%d?%d?%d?', function(x)\n` +
+                    `            if (#x ~= 8) then return '' end\n` +
+                    `            local c=0\n` +
+                    `            for i=1,8 do c=c+(x:sub(i,i)=='1' and 2^(8-i) or 0) end\n` +
+                    `            return string.char(c)\n` +
+                    `        end))\n` +
                     `    end\n` +
+                    `    local realCode = decode("${encodedData}")\n` +
+                    `    return loadstring(realCode)()\n` +
                     `end\n\n` +
                     `pcall(_vexisRun)`;
 
                 document.getElementById('outputCode').value = protectedScript;
             } catch (e) {
                 document.getElementById('outputCode').value = "[ERROR] Falló la protección del script.";
+            }
+        }
+
+        function deobfuscateRobloxScript() {
+            const input = document.getElementById('inputCode').value;
+            if (!input) return;
+
+            try {
+                // Extraer el payload Base64 que está dentro de la variable _VexisPayload
+                const match = input.match(/local _VexisPayload = "([^"]+)"/);
+                if (!match || !match[1]) {
+                    throw new Error("No se encontró un payload válido de Vexis en el código.");
+                }
+
+                let encodedData = match[1];
+                let decodedBytes = atob(encodedData);
+                let originalCode = decodeURIComponent(decodedBytes);
+
+                document.getElementById('outputCode').value = originalCode;
+            } catch (e) {
+                document.getElementById('outputCode').value = "[ERROR] El código no tiene el formato protegido de Vexis o está corrupto.";
             }
         }
 
@@ -189,7 +201,7 @@
             const output = document.getElementById('outputCode');
             output.select();
             document.execCommand('copy');
-            alert('¡Script protegido copiado al portapapeles, spud!');
+            alert('¡Resultado copiado al portapapeles, spud!');
         }
     </script>
 </body>
