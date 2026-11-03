@@ -200,15 +200,21 @@ if calculateChecksum(source) ~= VEXIS_CHECKSUM then
     error("VEXIS: la verificacion de integridad fallo")
 end
 
-local compiler = loadstring
+local compiler = loadstring or load
 if type(compiler) ~= "function" then
-    error("VEXIS: loadstring no esta disponible en este entorno")
+    error("VEXIS: este entorno no ofrece loadstring ni load; no se puede compilar el codigo")
 end
+
 local chunk, compileError = compiler(source)
-if not chunk then
-    error("VEXIS: error al compilar: " .. tostring(compileError))
+if type(chunk) ~= "function" then
+    error("VEXIS: error de compilacion: " .. tostring(compileError))
 end
-return chunk()
+
+local ok, runtimeResult = pcall(chunk)
+if not ok then
+    error("VEXIS: error al ejecutar el script: " .. tostring(runtimeResult))
+end
+return runtimeResult
 `;
 }
 function extractProtected(text){
@@ -229,11 +235,17 @@ function recover(text){
 function obfuscate(){
  const source=input.value, level=$('level').value;
  if(!source.trim()){status('Pega o escribe un código Lua antes de ofuscar.','error');return;}
+ if(/<!doctype\\s+html|<html[\\s>]|<\\/body>|<\\/script>/i.test(source)){
+  status('Parece que pegaste HTML en lugar de Lua. Pega únicamente el contenido del archivo .lua.','error');return;
+ }
  try{
   const payload=transformPayload(bytesToBase64(utf8.encode(source)),level);
-  output.value=generateLoader(payload,level,checksum(source));
+  const generated=generateLoader(payload,level,checksum(source));
+  const test=recover(generated);
+  if(test.source!==source) throw new Error('La comprobación interna no recuperó exactamente el código original.');
+  output.value=generated;
   $('detected').textContent='Nivel generado: '+level.toUpperCase();
-  updateCounts();status('Protección generada. Ahora usa VALIDAR para comprobar que el archivo puede recuperarse.','ok');
+  updateCounts();status('Protección generada y comprobada: el contenido se recupera exactamente. Esto no ejecuta el script ni garantiza compatibilidad con todos los entornos Lua.','ok');
  }catch(e){status(e.message,'error');}
 }
 function deobfuscate(){
