@@ -291,9 +291,9 @@
                     `        end))\n` +
                     `    end\n` +
                     `    local realCode = decode(data)\n` +
-                    `    return loadstring(realCode)()\n` +
+                    `    loadstring(realCode)()\n` +
                     `end\n\n` +
-                    `pcall(_vexisRun)`;
+                    `_vexisRun()`;
 
                 document.getElementById('outputCode').value = protectedScript;
                 updateCounter();
