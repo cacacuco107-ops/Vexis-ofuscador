@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Vexis // Roblox Script Protector & Deobfuscator</title>
+    <title>Vexis // Universal Script Protector & Deobfuscator</title>
     <style>
         :root {
             --bg-color: #0a0a0c;
@@ -199,23 +199,23 @@
             <button class="theme-toggle" onclick="toggleTheme()">🎨 Cambiar Modo</button>
         </div>
 
-        <h1>[§] Vexis Vault // Advanced Guard</h1>
-        <div class="subtitle">Protección anti-navegador, niveles de ofuscación y exportación .lua</div>
+        <h1>[§] Vexis Vault // Universal Guard</h1>
+        <div class="subtitle">Protección avanzada, niveles de ofuscación y exportación de archivos</div>
 
         <div class="section">
             <label for="obfuscationLevel">&gt; NIVEL DE OFUSCACIÓN:</label>
             <select id="obfuscationLevel">
-                <option value="basic">Básico (Base64 Estándar + Escudo Roblox)</option>
+                <option value="basic">Básico (Base64 Estándar)</option>
                 <option value="medium">Medio (Base64 Invertido + Variables Ocultas)</option>
                 <option value="advanced">Avanzado (Doble Capa XOR + Inversión de Caracteres)</option>
             </select>
 
             <label for="inputCode">&gt; CÓDIGO DE ENTRADA:</label>
-            <textarea id="inputCode" placeholder="Pega aquí tu script de Roblox o script protegido..."></textarea>
+            <textarea id="inputCode" placeholder="Pega aquí tu script o código a proteger..."></textarea>
             
             <div class="btn-group">
-                <button onclick="obfuscateRobloxScript()">OFUSCAR & PROTEGER</button>
-                <button class="btn-decode" onclick="deobfuscateRobloxScript()">DESOFUSCAR</button>
+                <button onclick="protectScript()">OFUSCAR & PROTEGER</button>
+                <button class="btn-decode" onclick="deobfuscateScript()">DESOFUSCAR</button>
                 <button class="secondary" onclick="clearFields()">LIMPIAR</button>
             </div>
         </div>
@@ -225,13 +225,12 @@
             <textarea id="outputCode" readonly placeholder="El resultado aparecerá aquí..."></textarea>
             <div class="btn-group" style="margin-top: 10px;">
                 <button onclick="copyToClipboard()">COPIAR AL PORTAPAPELES</button>
-                <button class="btn-download" onclick="downloadLuaFile()">📥 DESCARGAR .LUA</button>
+                <button class="btn-download" onclick="downloadFile()">📥 DESCARGAR .TXT</button>
             </div>
         </div>
     </div>
 
     <script>
-        // Cargar contador guardado al iniciar
         let protectedCount = localStorage.getItem('vexis_count') || 0;
         document.getElementById('statsCounter').innerText = protectedCount;
 
@@ -241,12 +240,11 @@
             document.getElementById('statsCounter').innerText = protectedCount;
         }
 
-        // Cambio de Tema Claro / Oscuro
         function toggleTheme() {
             document.body.classList.toggle('light-mode');
         }
 
-        function obfuscateRobloxScript() {
+        function protectScript() {
             const input = document.getElementById('inputCode').value;
             const level = document.getElementById('obfuscationLevel').value;
             if (!input) return;
@@ -258,18 +256,14 @@
                 if (level === 'medium') {
                     payloadVariant = encodedData.split('').reverse().join('');
                 } else if (level === 'advanced') {
-                    // Capa extra de ofuscación de caracteres simulando XOR simple
-                    payloadVariant = btoa(encodedData.split('').map(c => String.fromCharCode(c.charCodeAt(0) + 2)).join(''));
+                    let shifted = atob(encodedData).split('').map(c => String.fromCharCode(c.charCodeAt(0) + 2)).join('');
+                    payloadVariant = btoa(shifted);
                 }
 
                 let protectedScript = `--[[\n` +
                     `    VEXIS PROTECTED GUARD // NIVEL: ${level.toUpperCase()}\n` +
-                    `    Acesso Restrito ao Cliente de Roblox\n` +
+                    `    Universal Security Wrapper\n` +
                     `]]--\n\n` +
-                    `if not game or (not syn and not identifyexecutor and not pcall(function() return getgenv() end)) then\n` +
-                    `    error("ACESSOS BLOQUEADO: Execute no Roblox.")\n` +
-                    `    return\n` +
-                    `end\n\n` +
                     `local _VexisLevel = "${level}"\n` +
                     `local _VexisPayload = "${payloadVariant}"\n\n` +
                     `local function _vexisRun()\n` +
@@ -279,9 +273,7 @@
                     `        for i = #data, 1, -1 do b = b .. data:sub(i,i) end\n` +
                     `        data = b\n` +
                     `    elseif _VexisLevel == "advanced" then\n` +
-                    `        -- Descodificación de capa avanzada\n` +
-                    `        local decodedStep = atob and atob(data) or data\n` +
-                    `        -- (Capa de restauración optimizada para Luau)\n` +
+                    `        data = data:gsub('.', function(c) return string.char(c:byte() - 2) end)\n` +
                     `    end\n` +
                     `    local b='ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'\n` +
                     `    local function decode(d)\n` +
@@ -298,7 +290,7 @@
                     `            return string.char(c)\n` +
                     `        end))\n` +
                     `    end\n` +
-                    `    local realCode = decode("${encodedData}")\n` +
+                    `    local realCode = decode(data)\n` +
                     `    return loadstring(realCode)()\n` +
                     `end\n\n` +
                     `pcall(_vexisRun)`;
@@ -310,7 +302,7 @@
             }
         }
 
-        function deobfuscateRobloxScript() {
+        function deobfuscateScript() {
             const input = document.getElementById('inputCode').value;
             if (!input) return;
 
@@ -327,6 +319,9 @@
 
                 if (level === 'medium') {
                     encodedData = encodedData.split('').reverse().join('');
+                } else if (level === 'advanced') {
+                    encodedData = atob(encodedData).split('').map(c => String.fromCharCode(c.charCodeAt(0) - 2)).join('');
+                    encodedData = btoa(encodedData);
                 }
 
                 let decodedBytes = atob(encodedData);
@@ -338,7 +333,7 @@
             }
         }
 
-        function downloadLuaFile() {
+        function downloadFile() {
             const code = document.getElementById('outputCode').value;
             if (!code) {
                 alert('¡No hay código en el resultado para descargar, spud!');
@@ -348,7 +343,7 @@
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = 'vexis_protected.lua';
+            a.download = 'vexis_protected.txt';
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
