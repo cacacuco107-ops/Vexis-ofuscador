@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vexis // Roblox Script Protector & Obfuscator</title>
+    <style>
+        :root {
+            --bg-color: #0a0a0c;
+            --panel-bg: #12131a;
+            --accent-green: #00ff66;
+            --accent-red: #ff3333;
+            --text-main: #c0c0d0;
+            --border-color: #222638;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Courier New', Courier, monospace; }
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .container {
+            width: 100%;
+            max-width: 900px;
+            background: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 25px;
+            box-shadow: 0 0 20px rgba(0, 255, 102, 0.05);
+        }
+        h1 {
+            color: var(--accent-green);
+            font-size: 1.5rem;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+        .subtitle {
+            font-size: 0.85rem;
+            color: #666;
+            margin-bottom: 20px;
+        }
+        .section {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--accent-green);
+            font-size: 0.9rem;
+        }
+        textarea {
+            width: 100%;
+            height: 160px;
+            background: #07080a;
+            color: var(--accent-green);
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            padding: 12px;
+            font-size: 0.95rem;
+            resize: vertical;
+        }
+        textarea:focus {
+            outline: none;
+            border-color: var(--accent-green);
+        }
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        button {
+            flex: 1;
+            background: transparent;
+            color: var(--accent-green);
+            border: 1px solid var(--accent-green);
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.2s ease;
+        }
+        button:hover {
+            background: var(--accent-green);
+            color: var(--bg-color);
+        }
+        button.secondary {
+            color: var(--accent-red);
+            border-color: var(--accent-red);
+        }
+        button.secondary:hover {
+            background: var(--accent-red);
+            color: var(--bg-color);
+        }
+        .output-box {
+            margin-top: 25px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>[§] Vexis Vault // Roblox Luau Guard</h1>
+        <div class="subtitle">Ofuscador con capa de seguridad anti-navegador y envoltura para loadstring.</div>
+
+        <div class="section">
+            <label for="inputCode">&gt; SCRIPT ORIGINAL DE ROBLOX (LUA / LUAU):</label>
+            <textarea id="inputCode" placeholder="print('Hola Roblox!')"></textarea>
+            
+            <div class="btn-group">
+                <button onclick="obfuscateRobloxScript()">OFUSCAR & PROTEGER</button>
+                <button class="secondary" onclick="clearFields()">LIMPIAR</button>
+            </div>
+        </div>
+
+        <div class="section output-box">
+            <label for="outputCode">&gt; SCRIPT PROTEGIDO (LISTO PARA LOADSTRING):</label>
+            <textarea id="outputCode" readonly placeholder="El código protegido aparecerá aquí..."></textarea>
+            <div class="btn-group" style="margin-top: 10px;">
+                <button onclick="copyToClipboard()">COPIAR AL PORTAPAPELES</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function obfuscateRobloxScript() {
+            const input = document.getElementById('inputCode').value;
+            if (!input) return;
+
+            try {
+                // Codificar el script original en Base64
+                let encodedData = btoa(encodeURIComponent(input));
+
+                // Plantilla del wrapper que se ejecuta en el cliente de Roblox
+                let protectedScript = `--[[\n` +
+                    `    VEXIS PROTECTED GUARD // SECURE LOADSTRING\n` +
+                    `    Acesso Restrito ao Cliente de Roblox\n` +
+                    `]]--\n\n` +
+                    `if not game or (not syn and not identifyexecutor and not pcall(function() return getgenv() end)) then\n` +
+                    `    error("ACESSOS BLOQUEADO: Execute no Roblox.")\n` +
+                    `    return\n` +
+                    `end\n\n` +
+                    `local _VexisPayload = "${encodedData}"\n\n` +
+                    `local function _vexisRun()\n` +
+                    `    local rawBytes = syn and syn.crypt and syn.crypt.base64 and syn.crypt.base64.decode(_VexisPayload) or _VexisPayload\n` +
+                    `    -- Decodificacion segura en memoria\n` +
+                    `    local decoded = game:GetService("HttpService"):JSONDecode('"' .. rawBytes .. '"') -- fallback visual o parsing\n` +
+                    `    -- Nota: para entornos puramente estandar de loadstring con Base64 nativo del ejecutor:\n` +
+                    `    local func, err = loadstring(game:GetService("HttpService"):UrlEncode(_VexisPayload))\n` +
+                    `    if not func then\n` +
+                    `        -- Metodo estandar Base64 de soporte universal\n` +
+                    `        local b='ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'\n` +
+                    `        local function decode(data)\n` +
+                    `            data = string.gsub(data, '[^'..b..'=]', '')\n` +
+                    `            return (data:gsub('.', function(x)\n` +
+                    `                if (x == '=') then return '' end\n` +
+                    `                local r,f='',(b:find(x)-1)\n` +
+                    `                for i=6,1,-1 do r=r..(f%2^i-f%2^(i-1)>0 and '1' or '0') end\n` +
+                    `                return r;\n` +
+                    `            end):gsub('%d%d%d?%d?%d?%d?%d?%d?', function(x)\n` +
+                    `                if (#x ~= 8) then return '' end\n` +
+                    `                local c=0\n` +
+                    `                for i=1,8 do c=c+(x:sub(i,i)=='1' and 2^(8-i) or 0) end\n` +
+                    `                return string.char(c)\n` +
+                    `            end))\n` +
+                    `        end\n` +
+                    `        local realCode = decode("${encodedData}")\n` +
+                    `        return loadstring(realCode)()\n` +
+                    `    end\n` +
+                    `end\n\n` +
+                    `pcall(_vexisRun)`;
+
+                document.getElementById('outputCode').value = protectedScript;
+            } catch (e) {
+                document.getElementById('outputCode').value = "[ERROR] Falló la protección del script.";
+            }
+        }
+
+        function clearFields() {
+            document.getElementById('inputCode').value = '';
+            document.getElementById('outputCode').value = '';
+        }
+
+        function copyToClipboard() {
+            const output = document.getElementById('outputCode');
+            output.select();
+            document.execCommand('copy');
+            alert('¡Script protegido copiado al portapapeles, spud!');
+        }
+    </script>
+</body>
+</html>
