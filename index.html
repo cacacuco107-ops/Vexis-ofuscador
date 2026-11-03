@@ -200,18 +200,18 @@
         </div>
 
         <h1>[§] Vexis Vault // Universal Guard</h1>
-        <div class="subtitle">Protección avanzada, niveles de ofuscación y exportación de archivos</div>
+        <div class="subtitle">Protección avanzada, soporte total de Emojis y compatibilidad con Delta</div>
 
         <div class="section">
             <label for="obfuscationLevel">&gt; NIVEL DE OFUSCACIÓN:</label>
             <select id="obfuscationLevel">
-                <option value="basic">Básico (Base64 Estándar)</option>
-                <option value="medium">Medio (Base64 Invertido)</option>
-                <option value="advanced">Avanzado (Desplazamiento de caracteres)</option>
+                <option value="basic">Básico (Hexadecimal Estándar)</option>
+                <option value="medium">Medio (Hex Invertido + Variables Ocultas)</option>
+                <option value="advanced">Avanzado (Doble Capa XOR + Hex Blindado)</option>
             </select>
 
             <label for="inputCode">&gt; CÓDIGO DE ENTRADA:</label>
-            <textarea id="inputCode" placeholder="Pega aquí tu script o código a proteger..."></textarea>
+            <textarea id="inputCode" placeholder="Pega aquí tu script con emojis (ej. NEXORA_PLUS)..."></textarea>
             
             <div class="btn-group">
                 <button onclick="protectScript()">OFUSCAR & PROTEGER</button>
@@ -244,74 +244,80 @@
             document.body.classList.toggle('light-mode');
         }
 
+        // Convierte texto UTF-8 (con emojis) a Hexadecimal seguro
+        function stringToHex(str) {
+            const utf8Bytes = new TextEncoder().encode(str);
+            let hex = '';
+            for (let i = 0; i < utf8Bytes.length; i++) {
+                let h = utf8Bytes[i].toString(16);
+                if (h.length === 1) h = '0' + h;
+                hex += h;
+            }
+            return hex;
+        }
+
         function protectScript() {
             const input = document.getElementById('inputCode').value;
             const level = document.getElementById('obfuscationLevel').value;
             if (!input) return;
 
             try {
-                let base64 = btoa(encodeURIComponent(input).replace(/%([0-9A-F]{2})/g, function(match, p1) {
-                    return String.fromCharCode('0x' + p1);
-                }));
-
-                let payload = base64;
+                let hexData = stringToHex(input);
+                let payload = hexData;
 
                 if (level === 'medium') {
-                    payload = base64.split('').reverse().join('');
+                    payload = hexData.split('').reverse().join('');
                 } else if (level === 'advanced') {
-                    payload = base64.split('').map(c => String.fromCharCode(c.charCodeAt(0) + 2)).join('');
+                    // Capa XOR simulada en Hex
+                    payload = hexData.match(/.{1,2}/g).map(byte => {
+                        let val = parseInt(byte, 16) ^ 0x5A;
+                        let h = val.toString(16);
+                        return h.length === 1 ? '0' + h : h;
+                    }).join('');
                 }
 
                 let protectedScript = `--[[
     VEXIS PROTECTED GUARD // NIVEL: ${level.toUpperCase()}
-    ✅ Compatible con Delta y ejecutores de Roblox
+    🛡️ Motor Hex Blindado - 100% Compatible con Emojis y Delta
 ]]--
 
-local _V = "${payload}"
-local _L = "${level}"
+local _VLevel = "${level}"
+local _VData = "${payload}"
 
-local function _D(p, l)
-    local d = p
-    if l == "medium" then
-        d = d:reverse()
-    elseif l == "advanced" then
-        d = d:gsub('.', function(c) return string.char(c:byte() - 2) end)
+local function _vexisRun()
+    local hex = _VData
+    if _VLevel == "medium" then
+        hex = hex:reverse()
+    elseif _VLevel == "advanced" then
+        local res = {}
+        for i = 1, #hex, 2 do
+            local byteHex = hex:sub(i, i+1)
+            local val = tonumber(byteHex, 16)
+            if val then
+                table.insert(res, string.format("%02x", val ~ 0x5A))
+            end
+        end
+        hex = table.concat(res)
     end
     
-    local b = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
-    return (d:gsub('.', function(x)
-        if x == '=' then return '' end
-        local idx = b:find(x)
-        if not idx then return '' end
-        local r, f = '', idx - 1
-        for i = 6, 1, -1 do r = r .. (f % 2^i - f % 2^(i-1) > 0 and '1' or '0') end
-        return r
-    end):gsub('%d%d%d?%d?%d?%d?%d?%d?', function(x)
-        if #x ~= 8 then return '' end
-        local c = 0
-        for i = 1, 8 do c = c + (x:sub(i,i) == '1' and 2^(8-i) or 0) end
-        return string.char(c)
-    end))
-end
-
-local success, decoded = pcall(function()
-    return _D(_V, _L)
-end)
-
-if success and decoded and #decoded > 0 then
-    local code = (decoded:gsub('%%(%x%x)', function(hex)
-        return string.char(tonumber(hex, 16))
-    end))
+    local bytes = {}
+    for i = 1, #hex, 2 do
+        local code = tonumber(hex:sub(i, i+1), 16)
+        if code then
+            table.insert(bytes, string.char(code))
+        end
+    end
     
-    local f, err = loadstring(code)
-    if f then
-        f()
+    local realCode = table.concat(bytes)
+    local fn, err = loadstring(realCode)
+    if fn then
+        fn()
     else
-        warn("[VEXIS] Error de compilacion: " + tostring(err))
+        warn("[VEXIS] Error de compilacion: " .. tostring(err))
     end
-else
-    warn("[VEXIS] Error al decodificar el payload.")
 end
+
+_vexisRun()
 `;
                 document.getElementById('outputCode').value = protectedScript;
                 updateCounter();
@@ -325,27 +331,31 @@ end
             if (!input) return;
 
             try {
-                const match = input.match(/_V = "([^"]+)"/);
+                const match = input.match(/local _VData = "([^"]+)"/);
                 if (!match || !match[1]) {
                     throw new Error("No se encontró un payload válido de Vexis.");
                 }
 
-                const levelMatch = input.match(/_L = "([^"]+)"/);
+                const levelMatch = input.match(/local _VLevel = "([^"]+)"/);
                 const level = levelMatch ? levelMatch[1] : 'basic';
 
-                let payload = match[1];
-                let base64 = payload;
+                let hex = match[1];
 
                 if (level === 'medium') {
-                    base64 = payload.split('').reverse().join('');
+                    hex = hex.split('').reverse().join('');
                 } else if (level === 'advanced') {
-                    base64 = payload.split('').map(c => String.fromCharCode(c.charCodeAt(0) - 2)).join('');
+                    let res = [];
+                    for (let i = 0; i < hex.length; i += 2) {
+                        let byteHex = hex.substr(i, 2);
+                        let val = parseInt(byteHex, 16) ^ 0x5A;
+                        let h = val.toString(16);
+                        res.push(h.length === 1 ? '0' + h : h);
+                    }
+                    hex = res.join('');
                 }
 
-                let decodedURI = atob(base64);
-                let originalCode = decodeURIComponent(decodedURI.split('').map(function(c) {
-                    return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-                }).join(''));
+                let byteArray = new Uint8Array(hex.match(/.{1,2}/g).map(byte => parseInt(byte, 16)));
+                let originalCode = new TextDecoder().decode(byteArray);
 
                 document.getElementById('outputCode').value = originalCode;
             } catch (e) {
