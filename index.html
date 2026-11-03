@@ -235,7 +235,7 @@ function recover(text){
 function obfuscate(){
  const source=input.value, level=$('level').value;
  if(!source.trim()){status('Pega o escribe un código Lua antes de ofuscar.','error');return;}
- if(/<!doctype\\s+html|<html[\\s>]|<\\/body>|<\\/script>/i.test(source)){
+ if(/<!doctype\s+html|<html[\s>]|<\/body>|<\/script>/i.test(source)){
   status('Parece que pegaste HTML en lugar de Lua. Pega únicamente el contenido del archivo .lua.','error');return;
  }
  try{
