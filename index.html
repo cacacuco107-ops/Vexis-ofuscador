@@ -3,110 +3,149 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Vexis // Universal Script Protector</title>
+    <title>Vexis // Universal Code Protector</title>
     <style>
         :root {
-            --bg-color: #0a0a0c;
-            --panel-bg: #12131a;
-            --accent-green: #00ff66;
-            --text-main: #c0c0d0;
-            --border-color: #222638;
-            --input-bg: #07080a;
+            --bg-color: #0c0d12;
+            --panel-bg: #161821;
+            --accent: #00ff66;
+            --text: #d0d0dc;
+            --border: #2a2d3d;
+            --input-bg: #090a0e;
         }
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Courier New', Courier, monospace; }
-        body { background-color: var(--bg-color); color: var(--text-main); padding: 15px; display: flex; flex-direction: column; align-items: center; min-height: 100vh; }
-        .container { width: 100%; max-width: 900px; background: var(--panel-bg); border: 1px solid var(--border-color); border-radius: 8px; padding: 20px; }
-        h1 { color: var(--accent-green); font-size: 1.3rem; margin-bottom: 15px; text-transform: uppercase; }
-        label { display: block; margin-bottom: 6px; color: var(--accent-green); font-size: 0.85rem; }
-        select, textarea { width: 100%; background: var(--input-bg); color: var(--accent-green); border: 1px solid var(--border-color); border-radius: 4px; padding: 10px; font-size: 0.9rem; margin-bottom: 12px; outline: none; }
-        textarea { height: 130px; resize: vertical; }
-        .btn-group { display: flex; gap: 8px; margin-bottom: 15px; flex-wrap: wrap; }
-        button { flex: 1; min-width: 120px; background: transparent; color: var(--accent-green); border: 1px solid var(--accent-green); padding: 10px; border-radius: 4px; cursor: pointer; font-weight: bold; }
-        button:hover { background: var(--accent-green); color: var(--bg-color); }
+        body { background-color: var(--bg-color); color: var(--text); padding: 20px; display: flex; flex-direction: column; align-items: center; min-height: 100vh; }
+        .container { width: 100%; max-width: 900px; background: var(--panel-bg); border: 1px solid var(--border); border-radius: 10px; padding: 25px; box-shadow: 0 4px 20px rgba(0,0,0,0.5); }
+        h1 { color: var(--accent); font-size: 1.4rem; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 1px; }
+        p.sub { font-size: 0.8rem; color: #888; margin-bottom: 20px; }
+        .section { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 8px; color: var(--accent); font-size: 0.85rem; font-weight: bold; }
+        select, textarea { width: 100%; background: var(--input-bg); color: var(--accent); border: 1px solid var(--border); border-radius: 6px; padding: 12px; font-size: 0.9rem; outline: none; }
+        select { margin-bottom: 15px; cursor: pointer; color: var(--text); }
+        select:focus, textarea:focus { border-color: var(--accent); }
+        textarea { height: 160px; resize: vertical; }
+        .btn-group { display: flex; gap: 10px; margin-top: 15px; }
+        button { flex: 1; background: transparent; color: var(--accent); border: 1px solid var(--accent); padding: 12px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 0.9rem; transition: 0.2s; }
+        button:hover { background: var(--accent); color: var(--bg-color); }
+        button.secondary { color: #ff5555; border-color: #ff5555; }
+        button.secondary:hover { background: #ff5555; color: #fff; }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>[§] Vexis Vault</h1>
-        
-        <label>NIVEL DE OFUSCACIÓN:</label>
-        <select id="obfuscationLevel">
-            <option value="hex">Hexadecimal Seguro (Soporte Emojis)</option>
-        </select>
+        <h1>[§] Vexis // Universal Code Protector</h1>
+        <p class="sub">Blindaje de código multi-lenguaje (Lua, JavaScript, Python, HTML, etc.)</p>
 
-        <label>CÓDIGO DE ENTRADA:</label>
-        <textarea id="inputCode" placeholder="Pega aquí tu script..."></textarea>
-        
-        <div class="btn-group">
-            <button onclick="protectScript()">OFUSCAR & PROTEGER</button>
-            <button onclick="clearFields()">LIMPIAR</button>
+        <div class="section">
+            <label>&gt; SELECCIONAR LENGUAJE / ENTORNO:</label>
+            <select id="targetLanguage">
+                <option value="lua">Lua / Luau (Roblox / FiveM)</option>
+                <option value="js">JavaScript (Node.js / Web)</option>
+                <option value="python">Python (Scripts / Automatización)</option>
+                <option value="raw">Crudo / Genérico (Solo Bytes y Clave)</option>
+            </select>
+
+            <label>&gt; CÓDIGO DE ENTRADA (CUALQUIER TEXTO O CÓDIGO):</label>
+            <textarea id="inputCode" placeholder="Pega aquí tu código, script, HTML o texto a proteger..."></textarea>
+            
+            <div class="btn-group">
+                <button onclick="protectCode()">BLINDAR CÓDIGO</button>
+                <button class="secondary" onclick="clearFields()">LIMPIAR</button>
+            </div>
         </div>
 
-        <label>RESULTADO:</label>
-        <textarea id="outputCode" readonly placeholder="El resultado completo aparecerá aquí..."></textarea>
-        
-        <div class="btn-group">
-            <button onclick="copyToClipboard()">COPIAR</button>
-            <button onclick="downloadFile()">DESCARGAR .TXT</button>
+        <div class="section">
+            <label>&gt; RESULTADO BLINDADO:</label>
+            <textarea id="outputCode" readonly placeholder="El código protegido aparecerá aquí..."></textarea>
+            
+            <div class="btn-group">
+                <button onclick="copyCode()">COPIAR AL PORTAPAPELES</button>
+                <button onclick="downloadCode()">DESCARGAR ARCHIVO</button>
+            </div>
         </div>
     </div>
 
     <script>
-        function stringToHex(str) {
-            const bytes = new TextEncoder().encode(str);
-            let hex = '';
-            for (let i = 0; i < bytes.length; i++) {
-                let h = bytes[i].toString(16);
-                if (h.length === 1) h = '0' + h;
-                hex += h;
-            }
-            return hex;
-        }
-
-        function protectScript() {
+        function protectCode() {
             const input = document.getElementById('inputCode').value;
-            if (!input) return;
+            const lang = document.getElementById('targetLanguage').value;
+            if (!input) {
+                alert("¡Pega algo de código primero!");
+                return;
+            }
 
             try {
-                let payload = stringToHex(input);
+                // 1. Codificación segura a bytes UTF-8 (soporte total de emojis y caracteres especiales)
+                const encoder = new TextEncoder();
+                const rawBytes = encoder.encode(input);
+                
+                // 2. Aplicar capa XOR con clave aleatoria
+                const key = Math.floor(Math.random() * 200) + 10;
+                let obfuscatedBytes = [];
+                for (let i = 0; i < rawBytes.length; i++) {
+                    obfuscatedBytes.push((rawBytes[i] ^ key) & 0xFF);
+                }
 
-                let protectedScript = `--[[\n    VEXIS PROTECTED GUARD - Delta Compatible\n]]--\n\n` +
-                    `local _VData = "${payload}"\n\n` +
-                    `local function _vexisRun()\n` +
-                    `    local hex = _VData\n` +
-                    `    local bytes = {}\n` +
-                    `    for i = 1, #hex, 2 do\n` +
-                    `        local code = tonumber(hex:sub(i, i+1), 16)\n` +
-                    `        if code then\n` +
-                    `            table.insert(bytes, string.char(code))\n` +
-                    `        end\n` +
-                    `    end\n` +
-                    `    local realCode = table.concat(bytes)\n` +
-                    `    local fn, err = loadstring(realCode)\n` +
-                    `    if fn then\n` +
-                    `        fn()\n` +
-                    `    else\n` +
-                    `        warn("[VEXIS] Error de compilacion: " .. tostring(err))\n` +
-                    `    end\n` +
-                    `end\n\n` +
-                    `_vexisRun()`;
+                let byteArrayStr = obfuscatedBytes.join(',');
+                let finalOutput = "";
 
-                document.getElementById('outputCode').value = protectedScript;
-            } catch (e) {
-                document.getElementById('outputCode').value = "[ERROR] Falló la protección.";
+                // 3. Generar la estructura contenedora según el lenguaje elegido
+                if (lang === 'lua') {
+                    finalOutput = `--[[
+    VEXIS UNIVERSAL PROTECTOR (LUA)
+]]--
+local _K = ${key}
+local _B = {${byteArrayStr}}
+local function _R()
+    local t = {}
+    for i = 1, #_B do
+        local b = bit32 and bit32.bxor(_B[i], _K) or (_B[i] ~ _K)
+        table.insert(t, string.char(b))
+    end
+    local s = table.concat(t)
+    local f, err = loadstring(s)
+    if f then pcall(f) else warn("Vexis Error: " .. tostring(err)) end
+end
+_R()`;
+                } else if (lang === 'js') {
+                    finalOutput = `/* VEXIS UNIVERSAL PROTECTOR (JAVASCRIPT) */
+(function() {
+    const _K = ${key};
+    const _B = [${byteArrayStr}];
+    try {
+        let bytes = new Uint8Array(_B.map(b => b ^ _K));
+        let code = new TextDecoder().decode(bytes);
+        Function(code)();
+    } catch(e) {
+        console.error("Vexis Runtime Error:", e);
+    }
+})();`;
+                } else if (lang === 'python') {
+                    finalOutput = `# VEXIS UNIVERSAL PROTECTOR (PYTHON)
+import base64
+
+_K = ${key}
+_B = [${byteArrayStr}]
+
+def _run():
+    try:
+        raw_bytes = bytes([b ^ _K for b in _B])
+        code = raw_bytes.decode('utf-8')
+        exec(code)
+    except Exception as e:
+        print(f"Vexis Error: {e}")
+
+if __name__ == '__main__':
+    _run()`;
+                } else {
+                    // Formato crudo por si quiere usarlo en otros lados
+                    finalOutput = `// VEXIS RAW PAYLOAD\nKey: ${key}\nBytes: [${byteArrayStr}]`;
+                }
+
+                document.getElementById('outputCode').value = finalOutput;
+            } catch (err) {
+                alert("Error al procesar el código: " + err.message);
             }
-        }
-
-        function downloadFile() {
-            const code = document.getElementById('outputCode').value;
-            if (!code) return;
-            const blob = new Blob([code], { type: 'text/plain' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = 'vexis_protected.txt';
-            a.click();
-            URL.revokeObjectURL(url);
         }
 
         function clearFields() {
@@ -114,11 +153,27 @@
             document.getElementById('outputCode').value = '';
         }
 
-        function copyToClipboard() {
+        function copyCode() {
             const output = document.getElementById('outputCode');
+            if (!output.value) return;
             output.select();
             document.execCommand('copy');
-            alert('¡Copiado!');
+            alert('¡Código copiado al portapapeles!');
+        }
+
+        function downloadCode() {
+            const code = document.getElementById('outputCode').value;
+            if (!code) return;
+            const lang = document.getElementById('targetLanguage').value;
+            const ext = lang === 'python' ? 'py' : (lang === 'js' ? 'js' : 'txt');
+            
+            const blob = new Blob([code], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `vexis_protected.${ext}`;
+            a.click();
+            URL.revokeObjectURL(url);
         }
     </script>
 </body>
