@@ -1,804 +1,240 @@
-
 <!DOCTYPE html>
 <html lang="es">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Vexis // Lua Protector</title>
-
 <style>
-:root {
-    --bg:#0a0a0c;
-    --panel:#12131a;
-    --green:#00ff66;
-    --blue:#00bbff;
-    --red:#ff5555;
-    --text:#c0c0d0;
-    --border:#222638;
-    --input:#07080a;
-}
-
-* {
-    box-sizing:border-box;
-    margin:0;
-    padding:0;
-    font-family:'Courier New',monospace;
-}
-
-body {
-    background:var(--bg);
-    color:var(--text);
-    min-height:100vh;
-    padding:20px;
-}
-
-.container {
-    max-width:850px;
-    margin:0 auto;
-    background:var(--panel);
-    border:1px solid var(--border);
-    border-radius:8px;
-    padding:25px;
-    box-shadow:0 0 20px #00ff6610;
-}
-
-h1 {
-    color:var(--green);
-    font-size:1.4rem;
-    margin-bottom:5px;
-}
-
-.subtitle {
-    color:#777;
-    font-size:.85rem;
-    margin-bottom:20px;
-}
-
-label {
-    display:block;
-    color:var(--green);
-    margin-bottom:8px;
-    font-size:.9rem;
-}
-
-textarea {
-    width:100%;
-    height:150px;
-    background:var(--input);
-    color:var(--green);
-    border:1px solid var(--border);
-    border-radius:4px;
-    padding:12px;
-    font-size:.9rem;
-    resize:vertical;
-    margin-bottom:15px;
-}
-
-textarea:focus {
-    outline:none;
-    border-color:var(--green);
-    box-shadow:0 0 8px #00ff6633;
-}
-
-.btn-row {
-    display:flex;
-    gap:10px;
-    flex-wrap:wrap;
-    margin-bottom:20px;
-}
-
-button {
-    padding:10px 18px;
-    border-radius:4px;
-    font-weight:bold;
-    cursor:pointer;
-    transition:.2s;
-    border:none;
-}
-
-button:hover {
-    transform:translateY(-2px);
-    filter:brightness(1.15);
-}
-
-.btn-obf {background:var(--green);color:#000;}
-.btn-deobf {background:var(--blue);color:#000;}
-.btn-copy {background:#8855ff;color:white;}
-.btn-clear {background:var(--red);color:white;}
-.btn-check {background:#e5b52b;color:#000;}
-.btn-download {background:#00a878;color:white;}
-
-.level-select {
-    background:var(--input);
-    color:var(--text);
-    border:1px solid var(--border);
-    padding:8px;
-    border-radius:4px;
-    margin-bottom:15px;
-    width:100%;
-    max-width:300px;
-}
-
-.status {
-    margin-top:10px;
-    font-size:.85rem;
-    min-height:22px;
-    word-break:break-word;
-}
-
-.success {color:var(--green);}
-.error {color:var(--red);}
-
-.auto-detect {
-    color:var(--blue);
-    font-size:.8rem;
-    margin-left:10px;
-}
-
-.footer {
-    text-align:center;
-    color:#555;
-    font-size:.75rem;
-    margin-top:20px;
-}
-
-@media(max-width:550px) {
-    body {padding:10px;}
-    .container {padding:16px;}
-    .btn-row button {flex:1 1 40%;}
-}
+:root{--bg:#0a0a0c;--panel:#12131a;--green:#00ff66;--blue:#00bbff;--red:#ff5555;--text:#c0c0d0;--border:#222638;--input:#07080a}
+*{box-sizing:border-box;margin:0;padding:0;font-family:'Courier New',monospace}
+body{background:var(--bg);color:var(--text);min-height:100vh;padding:20px}
+.container{max-width:850px;margin:0 auto;background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:25px;box-shadow:0 0 20px #00ff6610}
+h1{color:var(--green);font-size:1.4rem;margin-bottom:5px}
+.subtitle{color:#777;font-size:.85rem;margin-bottom:20px}
+label{display:block;color:var(--green);margin-bottom:8px;font-size:.9rem}
+textarea{width:100%;height:150px;background:var(--input);color:var(--green);border:1px solid var(--border);border-radius:4px;padding:12px;font-size:.9rem;resize:vertical;margin-bottom:15px}
+textarea:focus{outline:none;border-color:var(--green);box-shadow:0 0 8px #00ff6633}
+.btn-row{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:20px}
+button{padding:10px 18px;border-radius:4px;font-weight:bold;cursor:pointer;transition:.2s;border:none}
+button:hover{transform:translateY(-2px);filter:brightness(1.15)}
+.btn-obf{background:var(--green);color:#000}.btn-deobf{background:var(--blue);color:#000}
+.btn-copy{background:#8855ff;color:white}.btn-clear{background:var(--red);color:white}
+.btn-check{background:#e5b52b;color:#000}.btn-download{background:#00a878;color:white}
+.level-select{background:var(--input);color:var(--text);border:1px solid var(--border);padding:8px;border-radius:4px;margin-bottom:15px;width:100%;max-width:300px}
+.status{margin-top:10px;font-size:.85rem;min-height:22px;word-break:break-word}
+.success{color:var(--green)}.error{color:var(--red)}
+.auto-detect{color:var(--blue);font-size:.8rem;margin-left:10px}
+.footer{text-align:center;color:#555;font-size:.75rem;margin-top:20px}
+@media(max-width:550px){body{padding:10px}.container{padding:16px}.btn-row button{flex:1 1 40%}}
 </style>
 </head>
-
 <body>
-
 <div class="container">
-
-    <h1>[§] Vexis // Lua Protector</h1>
-
-    <div class="subtitle">
-        🔒 Ofuscador y desofuscador Lua
-    </div>
-
-    <label>Nivel de protección:</label>
-
-    <select id="level" class="level-select">
-        <option value="basic">Básico (Base64)</option>
-        <option value="medium">Medio (Base64 + Invertido)</option>
-        <option value="advanced" selected>
-            Avanzado (Desplazamiento +3)
-        </option>
-    </select>
-
-    <span id="autoDetect" class="auto-detect"></span>
-
-    <label for="input">&gt; Código de entrada:</label>
-
-    <textarea id="input"
-        placeholder="Pega tu script Lua o código protegido..."
-        spellcheck="false"></textarea>
-
-    <div class="btn-row">
-
-        <button class="btn-obf" onclick="obfuscate()">
-            🔒 OFUSCAR
-        </button>
-
-        <button class="btn-deobf" onclick="deobfuscate()">
-            🔓 DESOFUSCAR
-        </button>
-
-        <button class="btn-check" onclick="validateCode()">
-            ✓ VALIDAR
-        </button>
-
-        <button class="btn-copy" onclick="copyOutput()">
-            📋 COPIAR
-        </button>
-
-        <button class="btn-download" onclick="downloadLua()">
-            ⬇ DESCARGAR LUA
-        </button>
-
-        <button class="btn-clear" onclick="clearAll()">
-            ✖ LIMPIAR
-        </button>
-
-    </div>
-
-    <label for="output">&gt; Resultado:</label>
-
-    <textarea id="output"
-        readonly
-        placeholder="El resultado aparecerá aquí..."
-        spellcheck="false"></textarea>
-
-    <div class="status" id="status"></div>
-
-    <div class="footer">
-        VEXIS LUA PROTECTOR // STANDALONE EDITION
-    </div>
-
+<h1>[§] Vexis // Lua Protector</h1>
+<div class="subtitle">🔒 Ofuscador y desofuscador Lua</div>
+<label for="level">Nivel de protección:</label>
+<select id="level" class="level-select">
+<option value="basic">Básico (Base64)</option>
+<option value="medium">Medio (Base64 + Invertido)</option>
+<option value="advanced" selected>Avanzado (Desplazamiento +3)</option>
+</select>
+<span id="autoDetect" class="auto-detect"></span>
+<label for="input">&gt; Código de entrada:</label>
+<textarea id="input" placeholder="Pega tu script Lua o código protegido..." spellcheck="false"></textarea>
+<div class="btn-row">
+<button class="btn-obf" onclick="obfuscate()">🔒 OFUSCAR</button>
+<button class="btn-deobf" onclick="deobfuscate()">🔓 DESOFUSCAR</button>
+<button class="btn-check" onclick="validateCode()">✓ VALIDAR</button>
+<button class="btn-copy" onclick="copyOutput()">📋 COPIAR</button>
+<button class="btn-download" onclick="downloadLua()">⬇ DESCARGAR LUA</button>
+<button class="btn-clear" onclick="clearAll()">✖ LIMPIAR</button>
 </div>
-
+<label for="output">&gt; Resultado:</label>
+<textarea id="output" readonly placeholder="El resultado aparecerá aquí..." spellcheck="false"></textarea>
+<div class="status" id="status"></div>
+<div class="footer">VEXIS LUA PROTECTOR // STANDALONE EDITION</div>
+</div>
 <script>
-
-// ========================================
-// VEXIS CORE
-// ========================================
-
 const $ = id => document.getElementById(id);
 
-function showStatus(message, error=false) {
-    const s = $('status');
-    s.textContent = message;
-    s.className = 'status ' + (error ? 'error' : 'success');
+function showStatus(message,error=false){
+ const s=$('status');s.textContent=message;s.className='status '+(error?'error':'success');
 }
-
-// ========================================
-// UTF-8 / BASE64
-// ========================================
-
-function encodeBase64(text) {
-    const bytes = new TextEncoder().encode(text);
-    let binary = '';
-
-    for (const byte of bytes) {
-        binary += String.fromCharCode(byte);
-    }
-
-    return btoa(binary);
+function encodeBase64(text){
+ const bytes=new TextEncoder().encode(text);let binary='';
+ for(const byte of bytes)binary+=String.fromCharCode(byte);
+ return btoa(binary);
 }
-
-function decodeBase64(text) {
-    let clean = text.replace(/\s/g, '');
-
-    if (!/^[A-Za-z0-9+/]*={0,2}$/.test(clean)) {
-        throw new Error('Base64 inválido');
-    }
-
-    clean = clean.replace(/=+$/, '');
-
-    if (clean.length % 4 === 1) {
-        throw new Error('Longitud Base64 incorrecta');
-    }
-
-    while (clean.length % 4 !== 0) {
-        clean += '=';
-    }
-
-    const binary = atob(clean);
-    const bytes = new Uint8Array(binary.length);
-
-    for (let i = 0; i < binary.length; i++) {
-        bytes[i] = binary.charCodeAt(i);
-    }
-
-    return new TextDecoder('utf-8', {
-        fatal:true
-    }).decode(bytes);
+function decodeBase64(text){
+ let clean=text.replace(/\s/g,'');
+ if(!/^[A-Za-z0-9+/]*={0,2}$/.test(clean))throw new Error('Base64 inválido');
+ clean=clean.replace(/=+$/,'');
+ if(clean.length%4===1)throw new Error('Longitud Base64 incorrecta');
+ while(clean.length%4!==0)clean+='=';
+ const binary=atob(clean),bytes=new Uint8Array(binary.length);
+ for(let i=0;i<binary.length;i++)bytes[i]=binary.charCodeAt(i);
+ return new TextDecoder('utf-8',{fatal:true}).decode(bytes);
 }
-
-// ========================================
-// CHECKSUM
-// ========================================
-
-function checksum(text) {
-    const bytes = new TextEncoder().encode(text);
-    let sum = 0;
-
-    for (let i = 0; i < bytes.length; i++) {
-        sum = (
-            sum + bytes[i] * ((i % 65521) + 1)
-        ) % 4294967296;
-    }
-
-    return Math.floor(sum)
-        .toString(16)
-        .padStart(8, '0');
+function checksum(text){
+ const bytes=new TextEncoder().encode(text);let sum=0;
+ for(let i=0;i<bytes.length;i++)sum=(sum+bytes[i]*((i%65521)+1))%4294967296;
+ return Math.floor(sum).toString(16).padStart(8,'0');
 }
-
-// ========================================
-// TRANSFORMACIONES
-// ========================================
-
-function transformPayload(payload, level) {
-
-    if (level === 'medium') {
-        return payload.split('').reverse().join('');
-    }
-
-    if (level === 'advanced') {
-        return payload.split('').map(c =>
-            String.fromCharCode(c.charCodeAt(0) + 3)
-        ).join('');
-    }
-
-    return payload;
+function transformPayload(payload,level){
+ if(level==='medium')return payload.split('').reverse().join('');
+ if(level==='advanced')return payload.split('').map(c=>String.fromCharCode(c.charCodeAt(0)+3)).join('');
+ return payload;
 }
-
-function reversePayload(payload, level) {
-
-    if (level === 'medium') {
-        return payload.split('').reverse().join('');
-    }
-
-    if (level === 'advanced') {
-        return payload.split('').map(c =>
-            String.fromCharCode(c.charCodeAt(0) - 3)
-        ).join('');
-    }
-
-    return payload;
+function reversePayload(payload,level){
+ if(level==='medium')return payload.split('').reverse().join('');
+ if(level==='advanced')return payload.split('').map(c=>String.fromCharCode(c.charCodeAt(0)-3)).join('');
+ return payload;
 }
-
-// ========================================
-// LUA LONG STRING
-// ========================================
-
-function luaLongString(payload) {
-
-    let equals = '';
-
-    while (payload.includes(']' + equals + ']')) {
-        equals += '=';
-    }
-
-    return '[' + equals + '[' +
-        payload +
-        ']' + equals + ']';
+function luaLongString(payload){
+ let equals='';
+ while(payload.includes(']'+equals+']'))equals+='=';
+ return '['+equals+'['+payload+']'+equals+']';
 }
-
-// ========================================
-// GENERADOR DE CARGADOR LUA
-// ========================================
-
-function generateLoader(payload, level, hash) {
-
-    const data = luaLongString(payload);
-
-    return `--[[
+function generateLoader(payload,level,hash){
+ return `--[[
     VEXIS LUA PROTECTOR
     Version: 2.0
     Level: ${level.toUpperCase()}
-
-    Archivo independiente.
-    No utiliza servidores externos.
+    Archivo independiente; no utiliza servidores externos.
 ]]--
 
 local VEXIS_LEVEL = "${level}"
 local VEXIS_CHECKSUM = "${hash}"
-local VEXIS_DATA = ${data}
-
--- =====================================
--- VEXIS DECODER
--- =====================================
+local VEXIS_DATA = ${luaLongString(payload)}
 
 local function reverseTransform(data, level)
-
-    if level == "medium" then
-        return data:reverse()
-    end
-
+    if level == "medium" then return data:reverse() end
     if level == "advanced" then
         local result = {}
-
         for i = 1, #data do
-            result[i] = string.char(
-                (string.byte(data, i) - 3) % 256
-            )
+            result[i] = string.char((string.byte(data, i) - 3) % 256)
         end
-
         return table.concat(result)
     end
-
     return data
 end
 
--- =====================================
--- BASE64 DECODER
--- =====================================
-
 local function decodeBase64(data)
-
-    local alphabet =
-        "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
-
-    local result = {}
-    local buffer = 0
-    local bits = 0
-
+    local alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
+    local result, buffer, bits = {}, 0, 0
     data = data:gsub("%s", "")
-
     for i = 1, #data do
-
         local char = data:sub(i, i)
-
-        if char == "=" then
-            break
-        end
-
+        if char == "=" then break end
         local value = alphabet:find(char, 1, true)
-
-        if not value then
-            error("VEXIS: Invalid Base64 character")
-        end
-
+        if not value then error("VEXIS: Invalid Base64 character") end
         buffer = buffer * 64 + (value - 1)
         bits = bits + 6
-
         if bits >= 8 then
-
             bits = bits - 8
-
             local divisor = 2 ^ bits
-
-            local byte = math.floor(
-                buffer / divisor
-            ) % 256
-
+            local byte = math.floor(buffer / divisor) % 256
             result[#result + 1] = string.char(byte)
-
             buffer = buffer % divisor
-
         end
-
     end
-
     return table.concat(result)
-
 end
-
--- =====================================
--- INTEGRITY CHECK
--- =====================================
 
 local function calculateChecksum(source)
-
     local sum = 0
-
     for i = 1, #source do
-
-        sum = (
-            sum +
-            string.byte(source, i) *
-            (((i - 1) % 65521) + 1)
-        ) % 4294967296
-
+        sum = (sum + string.byte(source, i) * (((i - 1) % 65521) + 1)) % 4294967296
     end
-
     return string.format("%08x", sum)
-
 end
 
--- =====================================
--- RECONSTRUCTION
--- =====================================
-
-local transformed = reverseTransform(
-    VEXIS_DATA,
-    VEXIS_LEVEL
-)
-
+local transformed = reverseTransform(VEXIS_DATA, VEXIS_LEVEL)
 local source = decodeBase64(transformed)
-
-local actualChecksum = calculateChecksum(source)
-
-if actualChecksum ~= VEXIS_CHECKSUM then
+if calculateChecksum(source) ~= VEXIS_CHECKSUM then
     error("VEXIS: Integrity verification failed")
 end
 
--- =====================================
--- EXECUTION
--- =====================================
-
 local compiler = loadstring
-
 if type(compiler) ~= "function" then
-    error(
-        "VEXIS: This environment does not support loadstring"
-    )
+    error("VEXIS: This environment does not support loadstring")
 end
-
 local chunk, compileError = compiler(source)
-
-if not chunk then
-    error(
-        "VEXIS: Compilation error: " ..
-        tostring(compileError)
-    )
-end
-
+if not chunk then error("VEXIS: Compilation error: " .. tostring(compileError)) end
 return chunk()
 `;
 }
-
-// ========================================
-// EXTRAER PROTECCIÓN
-// ========================================
-
-function extractProtected(text) {
-
-    const levelMatch = text.match(
-        /local VEXIS_LEVEL\s*=\s*"(basic|medium|advanced)"/i
-    );
-
-    const hashMatch = text.match(
-        /local VEXIS_CHECKSUM\s*=\s*"([a-f0-9]{8})"/i
-    );
-
-    const dataMatch = text.match(
-        /local VEXIS_DATA\s*=\s*\[(=*)\[([\s\S]*?)\]\1\]/
-    );
-
-    if (levelMatch && dataMatch) {
-        return {
-            level:levelMatch[1].toLowerCase(),
-            hash:hashMatch ? hashMatch[1] : null,
-            payload:dataMatch[2]
-        };
-    }
-
-    // Compatibilidad con versiones anteriores.
-
-    const oldLevel = text.match(
-        /NIVEL\s*:\s*(advanced|medium|basic)/i
-    );
-
-    const oldData = text.match(
-        /return\s*\[(=*)\[([\s\S]*?)\]\1\]/
-    );
-
-    if (oldLevel && oldData) {
-        return {
-            level:oldLevel[1].toLowerCase(),
-            hash:null,
-            payload:oldData[2]
-        };
-    }
-
-    throw new Error('Formato Vexis no reconocido');
+function extractProtected(text){
+ const levelMatch=text.match(/local\s+VEXIS_LEVEL\s*=\s*"(basic|medium|advanced)"/i);
+ const hashMatch=text.match(/local\s+VEXIS_CHECKSUM\s*=\s*"([a-f0-9]{8})"/i);
+ // Capture Lua long-string delimiters and payload.
+ const dataMatch=text.match(/local\s+VEXIS_DATA\s*=\s*\[(=*)\[([\s\S]*?)\]\1\]/);
+ if(levelMatch&&dataMatch)return {level:levelMatch[1].toLowerCase(),hash:hashMatch?hashMatch[1]:null,payload:dataMatch[2]};
+ const oldLevel=text.match(/NIVEL\s*:\s*(advanced|medium|basic)/i);
+ const oldData=text.match(/return\s*\[(=*)\[([\s\S]*?)\]\1\]/);
+ if(oldLevel&&oldData)return {level:oldLevel[1].toLowerCase(),hash:null,payload:oldData[2]};
+ throw new Error('Formato Vexis no reconocido');
 }
-
-// ========================================
-// RECUPERAR CÓDIGO
-// ========================================
-
-function recoverSource(text) {
-
-    const info = extractProtected(text);
-
-    const transformed = info.payload;
-
-    const originalBase64 = reversePayload(
-        transformed,
-        info.level
-    );
-
-    const source = decodeBase64(originalBase64);
-
-    const actualHash = checksum(source);
-
-    if (info.hash && actualHash !== info.hash) {
-        throw new Error('La integridad del código no coincide');
-    }
-
-    return {
-        source,
-        level:info.level,
-        hash:actualHash
-    };
+function recoverSource(text){
+ const info=extractProtected(text);
+ const source=decodeBase64(reversePayload(info.payload,info.level));
+ const actualHash=checksum(source);
+ if(info.hash&&actualHash!==info.hash)throw new Error('La integridad del código no coincide');
+ return {source,level:info.level,hash:actualHash};
 }
-
-// ========================================
-// OFUSCAR
-// ========================================
-
-function obfuscate() {
-
-    const source = $('input').value;
-    const level = $('level').value;
-
-    if (!source.trim()) {
-        showStatus('Escribe un código primero', true);
-        return;
-    }
-
-    try {
-
-        const encoded = encodeBase64(source);
-
-        const transformed = transformPayload(
-            encoded,
-            level
-        );
-
-        const hash = checksum(source);
-
-        const result = generateLoader(
-            transformed,
-            level,
-            hash
-        );
-
-        $('output').value = result;
-
-        $('autoDetect').textContent =
-            'Nivel generado: ' + level.toUpperCase();
-
-        showStatus(
-            'Código protegido y cargador generado correctamente.'
-        );
-
-    } catch (error) {
-
-        showStatus(error.message, true);
-
-    }
+function obfuscate(){
+ const source=$('input').value,level=$('level').value;
+ if(!source.trim()){showStatus('Escribe un código primero',true);return;}
+ try{
+  const payload=transformPayload(encodeBase64(source),level);
+  $('output').value=generateLoader(payload,level,checksum(source));
+  $('autoDetect').textContent='Nivel generado: '+level.toUpperCase();
+  showStatus('Código protegido y cargador generado correctamente.');
+ }catch(e){showStatus(e.message,true);}
 }
-
-// ========================================
-// DESOFUSCAR
-// ========================================
-
-function deobfuscate() {
-
-    const text = $('input').value;
-
-    if (!text.trim()) {
-        showStatus('Pega un código protegido', true);
-        return;
-    }
-
-    try {
-
-        const result = recoverSource(text);
-
-        $('output').value = result.source;
-
-        $('autoDetect').textContent =
-            'Nivel detectado: ' + result.level.toUpperCase();
-
-        showStatus(
-            'Código recuperado. Integridad: CORRECTA.'
-        );
-
-    } catch (error) {
-
-        $('output').value = '';
-
-        showStatus(error.message, true);
-
-    }
-
+function deobfuscate(){
+ const text=$('input').value;
+ if(!text.trim()){showStatus('Pega un código protegido',true);return;}
+ try{
+  const result=recoverSource(text);
+  $('output').value=result.source;
+  $('autoDetect').textContent='Nivel detectado: '+result.level.toUpperCase();
+  showStatus('Código recuperado. Integridad correcta.');
+ }catch(e){$('output').value='';showStatus(e.message,true);}
 }
-
-// ========================================
-// VALIDAR INTEGRIDAD
-// ========================================
-
-function validateCode() {
-
-    const text = $('input').value;
-
-    if (!text.trim()) {
-        showStatus('Pega un código protegido', true);
-        return;
-    }
-
-    try {
-
-        const result = recoverSource(text);
-
-        $('autoDetect').textContent =
-            'SHA: ' + result.hash;
-
-        showStatus(
-            '✓ Integridad correcta. Código recuperable.'
-        );
-
-    } catch (error) {
-
-        showStatus(
-            'Validación fallida: ' + error.message,
-            true
-        );
-
-    }
-
+function validateCode(){
+ // FIX: validar primero el resultado recién generado, no el código fuente de entrada.
+ const output=$('output').value.trim();
+ const input=$('input').value.trim();
+ const text=output||input;
+ if(!text){showStatus('No hay código para validar',true);return;}
+ try{
+  const result=recoverSource(text);
+  $('autoDetect').textContent='Nivel detectado: '+result.level.toUpperCase()+' | SHA: '+result.hash;
+  showStatus('✓ Código Vexis válido. Integridad correcta.');
+ }catch(e){
+  showStatus('Validación fallida: '+e.message,true);
+ }
 }
-
-// ========================================
-// COPIAR
-// ========================================
-
-async function copyOutput() {
-
-    const output = $('output');
-
-    if (!output.value) {
-        showStatus('No hay contenido para copiar', true);
-        return;
-    }
-
-    try {
-
-        await navigator.clipboard.writeText(
-            output.value
-        );
-
-        showStatus('Copiado correctamente.');
-
-    } catch (error) {
-
-        output.focus();
-        output.select();
-
-        const copied = document.execCommand('copy');
-
-        showStatus(
-            copied ? 'Copiado correctamente.' :
-            'No se pudo copiar.',
-            !copied
-        );
-
-    }
-
+async function copyOutput(){
+ const output=$('output');
+ if(!output.value){showStatus('No hay contenido para copiar',true);return;}
+ try{await navigator.clipboard.writeText(output.value);showStatus('Copiado correctamente.');}
+ catch(e){output.focus();output.select();const ok=document.execCommand('copy');showStatus(ok?'Copiado correctamente.':'No se pudo copiar.',!ok);}
 }
-
-// ========================================
-// DESCARGAR LUA
-// ========================================
-
-function downloadLua() {
-
-    const content = $('output').value;
-
-    if (!content.trim()) {
-        showStatus('No hay código para descargar', true);
-        return;
-    }
-
-    const blob = new Blob(
-        [content],
-        {type:'text/plain;charset=utf-8'}
-    );
-
-    const url = URL.createObjectURL(blob);
-
-    const link = document.createElement('a');
-
-    link.href = url;
-    link.download = 'Vexis_Protected.lua';
-
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
-
-    URL.revokeObjectURL(url);
-
-    showStatus('Archivo Lua generado.');
-
+function downloadLua(){
+ const content=$('output').value;
+ if(!content.trim()){showStatus('No hay código para descargar',true);return;}
+ const blob=new Blob([content],{type:'text/plain;charset=utf-8'});
+ const url=URL.createObjectURL(blob),link=document.createElement('a');
+ link.href=url;link.download='Vexis_Protected.lua';
+ document.body.appendChild(link);link.click();link.remove();URL.revokeObjectURL(url);
+ showStatus('Archivo Lua generado.');
 }
-
-// ========================================
-// LIMPIAR
-// ========================================
-
-function clearAll() {
-
-    $('input').value = '';
-    $('output').value = '';
-    $('status').textContent = '';
-    $('autoDetect').textContent = '';
-
+function clearAll(){
+ $('input').value='';$('output').value='';$('status').textContent='';$('autoDetect').textContent='';
 }
-
-$('input').addEventListener('input', () => {
-    $('autoDetect').textContent = '';
-});
-
+$('input').addEventListener('input',()=>$('autoDetect').textContent='');
 </script>
-
 </body>
 </html>
