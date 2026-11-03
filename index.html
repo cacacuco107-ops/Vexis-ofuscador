@@ -3,113 +3,159 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Vexis // Lua Protector</title>
+<meta name="theme-color" content="#090b12">
+<title>Vexis // Lua Protector 2.0</title>
 <style>
-:root{--bg:#0a0a0c;--panel:#12131a;--green:#00ff66;--blue:#00bbff;--red:#ff5555;--text:#c0c0d0;--border:#222638;--input:#07080a}
-*{box-sizing:border-box;margin:0;padding:0;font-family:'Courier New',monospace}
-body{background:var(--bg);color:var(--text);min-height:100vh;padding:20px}
-.container{max-width:850px;margin:0 auto;background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:25px;box-shadow:0 0 20px #00ff6610}
-h1{color:var(--green);font-size:1.4rem;margin-bottom:5px}
-.subtitle{color:#777;font-size:.85rem;margin-bottom:20px}
-label{display:block;color:var(--green);margin-bottom:8px;font-size:.9rem}
-textarea{width:100%;height:150px;background:var(--input);color:var(--green);border:1px solid var(--border);border-radius:4px;padding:12px;font-size:.9rem;resize:vertical;margin-bottom:15px}
-textarea:focus{outline:none;border-color:var(--green);box-shadow:0 0 8px #00ff6633}
-.btn-row{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:20px}
-button{padding:10px 18px;border-radius:4px;font-weight:bold;cursor:pointer;transition:.2s;border:none}
-button:hover{transform:translateY(-2px);filter:brightness(1.15)}
-.btn-obf{background:var(--green);color:#000}.btn-deobf{background:var(--blue);color:#000}
-.btn-copy{background:#8855ff;color:white}.btn-clear{background:var(--red);color:white}
-.btn-check{background:#e5b52b;color:#000}.btn-download{background:#00a878;color:white}
-.level-select{background:var(--input);color:var(--text);border:1px solid var(--border);padding:8px;border-radius:4px;margin-bottom:15px;width:100%;max-width:300px}
-.status{margin-top:10px;font-size:.85rem;min-height:22px;word-break:break-word}
-.success{color:var(--green)}.error{color:var(--red)}
-.auto-detect{color:var(--blue);font-size:.8rem;margin-left:10px}
-.footer{text-align:center;color:#555;font-size:.75rem;margin-top:20px}
-@media(max-width:550px){body{padding:10px}.container{padding:16px}.btn-row button{flex:1 1 40%}}
+:root{
+ --bg:#080a10;--panel:#111521;--panel2:#0b0f18;--green:#00f5a0;
+ --blue:#20c8ff;--purple:#9b70ff;--red:#ff637d;--yellow:#ffd166;
+ --text:#d7e0ee;--muted:#778399;--border:#242e42;
+}
+*{box-sizing:border-box;margin:0;padding:0;font-family:ui-monospace,SFMono-Regular,Consolas,"Courier New",monospace}
+body{min-height:100vh;padding:22px;color:var(--text);background:
+ radial-gradient(ellipse at 10% 0%,#00f5a012,transparent 35%),
+ radial-gradient(ellipse at 95% 15%,#7855ff18,transparent 32%),var(--bg)}
+.container{max-width:960px;margin:0 auto;padding:25px;background:linear-gradient(145deg,#141a29,#0e121c);
+ border:1px solid var(--border);border-radius:16px;box-shadow:0 18px 70px #0009,0 0 35px #00f5a00b;position:relative;overflow:hidden}
+.container:before{content:"";position:absolute;inset:0 0 auto;height:2px;background:linear-gradient(90deg,var(--green),var(--blue),var(--purple))}
+header{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:24px}
+.brand{display:flex;align-items:center;gap:13px}.logo{width:43px;height:43px;display:grid;place-items:center;border:1px solid #00f5a055;border-radius:12px;color:var(--green);font-size:21px;text-shadow:0 0 14px var(--green);box-shadow:inset 0 0 18px #00f5a015}
+h1{font-size:clamp(1.2rem,4vw,1.65rem);letter-spacing:.04em;color:#effff9}h1 span{color:var(--green)}
+.subtitle{color:var(--muted);font-size:.78rem;margin-top:5px}
+.version{font-size:.7rem;color:var(--green);border:1px solid #00f5a044;background:#00f5a00c;padding:7px 10px;border-radius:20px;white-space:nowrap}
+.section{margin-top:19px}.section-head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:9px}
+label{font-size:.82rem;color:#a8f8d7;font-weight:700}.hint{font-size:.7rem;color:var(--muted)}
+textarea{display:block;width:100%;min-height:180px;resize:vertical;padding:14px;border:1px solid var(--border);border-radius:10px;background:var(--panel2);color:#b6f7db;font-size:.82rem;line-height:1.55;outline:none;tab-size:4;transition:.2s}
+textarea:focus,select:focus{border-color:#00d995;box-shadow:0 0 0 3px #00f5a012}
+textarea[readonly]{color:#9fdcff}
+.controls{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:14px;align-items:end}
+select{width:100%;max-width:360px;padding:11px 12px;background:var(--panel2);color:var(--text);border:1px solid var(--border);border-radius:9px;outline:none}
+.actions{display:flex;flex-wrap:wrap;gap:9px;margin-top:15px}
+button{border:1px solid transparent;border-radius:9px;padding:11px 14px;font-size:.77rem;font-weight:800;letter-spacing:.02em;cursor:pointer;transition:transform .18s,filter .18s,box-shadow .18s}
+button:hover{transform:translateY(-2px);filter:brightness(1.12)}button:active{transform:translateY(0)}
+.primary{background:var(--green);color:#04120c;box-shadow:0 5px 18px #00f5a022}.secondary{background:#102c3b;color:#8ce4ff;border-color:#1b617b}
+.purple{background:#281d46;color:#cbb7ff;border-color:#59428c}.yellow{background:#3a3018;color:var(--yellow);border-color:#74602b}
+.red{background:#381b27;color:#ff9aac;border-color:#713347}.download{background:#10372e;color:#80ffd0;border-color:#1d765b}
+.status{min-height:42px;margin-top:14px;padding:11px 13px;border:1px solid var(--border);border-radius:9px;background:#080c13;color:var(--muted);font-size:.77rem;line-height:1.45;overflow-wrap:anywhere}
+.status.ok{color:var(--green);border-color:#00f5a033}.status.error{color:#ff8ca0;border-color:#ff637d44}
+.info{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:17px}
+.info article{padding:12px;border:1px solid var(--border);border-radius:10px;background:#0b101a}
+.info strong{display:block;color:#b9c8dc;font-size:.73rem;margin-bottom:5px}.info p{color:var(--muted);font-size:.68rem;line-height:1.5}
+footer{text-align:center;color:#58647a;font-size:.68rem;margin-top:22px;letter-spacing:.08em}
+@media(max-width:650px){body{padding:10px}.container{padding:16px}.controls{grid-template-columns:1fr}.version{align-self:flex-start}.info{grid-template-columns:1fr}.actions button{flex:1 1 42%}textarea{min-height:155px}}
 </style>
 </head>
 <body>
-<div class="container">
-<h1>[§] Vexis // Lua Protector</h1>
-<div class="subtitle">🔒 Ofuscador y desofuscador Lua</div>
-<label for="level">Nivel de protección:</label>
-<select id="level" class="level-select">
-<option value="basic">Básico (Base64)</option>
-<option value="medium">Medio (Base64 + Invertido)</option>
-<option value="advanced" selected>Avanzado (Desplazamiento +3)</option>
-</select>
-<span id="autoDetect" class="auto-detect"></span>
-<label for="input">&gt; Código de entrada:</label>
-<textarea id="input" placeholder="Pega tu script Lua o código protegido..." spellcheck="false"></textarea>
-<div class="btn-row">
-<button class="btn-obf" onclick="obfuscate()">🔒 OFUSCAR</button>
-<button class="btn-deobf" onclick="deobfuscate()">🔓 DESOFUSCAR</button>
-<button class="btn-check" onclick="validateCode()">✓ VALIDAR</button>
-<button class="btn-copy" onclick="copyOutput()">📋 COPIAR</button>
-<button class="btn-download" onclick="downloadLua()">⬇ DESCARGAR LUA</button>
-<button class="btn-clear" onclick="clearAll()">✖ LIMPIAR</button>
-</div>
-<label for="output">&gt; Resultado:</label>
-<textarea id="output" readonly placeholder="El resultado aparecerá aquí..." spellcheck="false"></textarea>
-<div class="status" id="status"></div>
-<div class="footer">VEXIS LUA PROTECTOR // STANDALONE EDITION</div>
-</div>
-<script>
-const $ = id => document.getElementById(id);
+<main class="container">
+<header>
+ <div class="brand"><div class="logo">§</div><div><h1>VEXIS <span>// LUA PROTECTOR</span></h1><p class="subtitle">Codifica · Recupera · Verifica · Exporta</p></div></div>
+ <div class="version">VERSION 2.0</div>
+</header>
 
-function showStatus(message,error=false){
- const s=$('status');s.textContent=message;s.className='status '+(error?'error':'success');
+<div class="controls">
+ <div><label for="level">NIVEL DE PROTECCIÓN</label><div style="height:8px"></div>
+ <select id="level">
+  <option value="basic">Básico — Base64</option>
+  <option value="medium">Medio — Base64 + inversión</option>
+  <option value="advanced" selected>Avanzado — Base64 + desplazamiento</option>
+ </select></div>
+ <div class="hint" id="detected">Listo para procesar</div>
+</div>
+
+<section class="section">
+ <div class="section-head"><label for="input">01 / CÓDIGO DE ENTRADA</label><span class="hint" id="inputCount">0 caracteres</span></div>
+ <textarea id="input" spellcheck="false" autocapitalize="off" autocomplete="off" placeholder="Pega aquí tu código Lua original o un archivo Vexis protegido..."></textarea>
+</section>
+
+<div class="actions">
+ <button class="primary" id="obfuscate">◆ OFUSCAR</button>
+ <button class="secondary" id="deobfuscate">◇ DESOFUSCAR</button>
+ <button class="yellow" id="validate">✓ VALIDAR</button>
+ <button class="purple" id="copy">▣ COPIAR</button>
+ <button class="download" id="download">↓ DESCARGAR LUA</button>
+ <button class="red" id="clear">× LIMPIAR</button>
+</div>
+
+<section class="section">
+ <div class="section-head"><label for="output">02 / RESULTADO</label><span class="hint" id="outputCount">0 caracteres</span></div>
+ <textarea id="output" readonly spellcheck="false" placeholder="El resultado aparecerá aquí..."></textarea>
+</section>
+<div class="status" id="status" role="status" aria-live="polite">Esperando código. Vexis funciona localmente; no envía tus scripts a ningún servidor.</div>
+
+<div class="info">
+ <article><strong>01 — PROCESAMIENTO LOCAL</strong><p>La transformación se realiza en tu navegador. El código no se sube a un servidor.</p></article>
+ <article><strong>02 — VALIDACIÓN REAL</strong><p>Comprueba que el contenido protegido se puede recuperar y que su checksum coincide.</p></article>
+ <article><strong>03 — COMPATIBILIDAD</strong><p>El cargador usa Lua estándar y loadstring. La disponibilidad depende del entorno donde se ejecute.</p></article>
+</div>
+<footer>VEXIS LUA PROTECTOR // STANDALONE EDITION</footer>
+</main>
+
+<script>
+'use strict';
+const $ = id => document.getElementById(id);
+const input = $('input'), output = $('output');
+const utf8 = new TextEncoder();
+
+function status(message, type='') {
+ const node=$('status'); node.textContent=message; node.className='status '+type;
 }
-function encodeBase64(text){
- const bytes=new TextEncoder().encode(text);let binary='';
- for(const byte of bytes)binary+=String.fromCharCode(byte);
+function updateCounts(){
+ $('inputCount').textContent=input.value.length.toLocaleString('es-MX')+' caracteres';
+ $('outputCount').textContent=output.value.length.toLocaleString('es-MX')+' caracteres';
+}
+function bytesToBase64(bytes){
+ let binary='';
+ const step=0x8000;
+ for(let i=0;i<bytes.length;i+=step) binary+=String.fromCharCode(...bytes.subarray(i,i+step));
  return btoa(binary);
 }
-function decodeBase64(text){
+function base64ToBytes(text){
  let clean=text.replace(/\s/g,'');
- if(!/^[A-Za-z0-9+/]*={0,2}$/.test(clean))throw new Error('Base64 inválido');
- clean=clean.replace(/=+$/,'');
- if(clean.length%4===1)throw new Error('Longitud Base64 incorrecta');
- while(clean.length%4!==0)clean+='=';
- const binary=atob(clean),bytes=new Uint8Array(binary.length);
- for(let i=0;i<binary.length;i++)bytes[i]=binary.charCodeAt(i);
- return new TextDecoder('utf-8',{fatal:true}).decode(bytes);
+ if(!/^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/.test(clean))
+  throw new Error('El bloque Base64 está incompleto o contiene caracteres inválidos.');
+ const binary=atob(clean), bytes=new Uint8Array(binary.length);
+ for(let i=0;i<binary.length;i++) bytes[i]=binary.charCodeAt(i);
+ return bytes;
+}
+function decodeUtf8(bytes){
+ try{return new TextDecoder('utf-8',{fatal:true}).decode(bytes);}
+ catch(_){throw new Error('El contenido recuperado no es UTF-8 válido.');}
 }
 function checksum(text){
- const bytes=new TextEncoder().encode(text);let sum=0;
- for(let i=0;i<bytes.length;i++)sum=(sum+bytes[i]*((i%65521)+1))%4294967296;
+ const bytes=utf8.encode(text);let sum=0;
+ for(let i=0;i<bytes.length;i++) sum=(sum+bytes[i]*((i%65521)+1))%4294967296;
  return Math.floor(sum).toString(16).padStart(8,'0');
 }
 function transformPayload(payload,level){
- if(level==='medium')return payload.split('').reverse().join('');
- if(level==='advanced')return payload.split('').map(c=>String.fromCharCode(c.charCodeAt(0)+3)).join('');
+ if(level==='medium') return payload.split('').reverse().join('');
+ if(level==='advanced') return Array.from(payload,c=>String.fromCharCode(c.charCodeAt(0)+3)).join('');
  return payload;
 }
 function reversePayload(payload,level){
- if(level==='medium')return payload.split('').reverse().join('');
- if(level==='advanced')return payload.split('').map(c=>String.fromCharCode(c.charCodeAt(0)-3)).join('');
+ if(level==='medium') return payload.split('').reverse().join('');
+ if(level==='advanced') return Array.from(payload,c=>String.fromCharCode(c.charCodeAt(0)-3)).join('');
  return payload;
 }
 function luaLongString(payload){
- let equals='';
- while(payload.includes(']'+equals+']'))equals+='=';
- return '['+equals+'['+payload+']'+equals+']';
+ let eq='';
+ while(payload.includes(']'+eq+']')) eq+='=';
+ return '['+eq+'['+payload+']'+eq+']';
 }
 function generateLoader(payload,level,hash){
  return `--[[
-    VEXIS LUA PROTECTOR
-    Version: 2.0
-    Level: ${level.toUpperCase()}
-    Archivo independiente; no utiliza servidores externos.
-]]--
+ VEXIS LUA PROTECTOR 2.0
+ Level: ${level.toUpperCase()}
+ Local standalone loader. No remote requests.
+]]
 
 local VEXIS_LEVEL = "${level}"
 local VEXIS_CHECKSUM = "${hash}"
 local VEXIS_DATA = ${luaLongString(payload)}
 
 local function reverseTransform(data, level)
-    if level == "medium" then return data:reverse() end
-    if level == "advanced" then
+    if level == "medium" then
+        return data:reverse()
+    elseif level == "advanced" then
         local result = {}
         for i = 1, #data do
             result[i] = string.char((string.byte(data, i) - 3) % 256)
@@ -122,19 +168,18 @@ end
 local function decodeBase64(data)
     local alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
     local result, buffer, bits = {}, 0, 0
-    data = data:gsub("%s", "")
+    data = data:gsub("%\\s", "")
     for i = 1, #data do
         local char = data:sub(i, i)
         if char == "=" then break end
         local value = alphabet:find(char, 1, true)
-        if not value then error("VEXIS: Invalid Base64 character") end
-        buffer = buffer * 64 + (value - 1)
+        if not value then error("VEXIS: caracter Base64 invalido") end
+        buffer = buffer * 64 + value - 1
         bits = bits + 6
         if bits >= 8 then
             bits = bits - 8
             local divisor = 2 ^ bits
-            local byte = math.floor(buffer / divisor) % 256
-            result[#result + 1] = string.char(byte)
+            result[#result + 1] = string.char(math.floor(buffer / divisor) % 256)
             buffer = buffer % divisor
         end
     end
@@ -152,89 +197,90 @@ end
 local transformed = reverseTransform(VEXIS_DATA, VEXIS_LEVEL)
 local source = decodeBase64(transformed)
 if calculateChecksum(source) ~= VEXIS_CHECKSUM then
-    error("VEXIS: Integrity verification failed")
+    error("VEXIS: la verificacion de integridad fallo")
 end
 
 local compiler = loadstring
 if type(compiler) ~= "function" then
-    error("VEXIS: This environment does not support loadstring")
+    error("VEXIS: loadstring no esta disponible en este entorno")
 end
 local chunk, compileError = compiler(source)
-if not chunk then error("VEXIS: Compilation error: " .. tostring(compileError)) end
+if not chunk then
+    error("VEXIS: error al compilar: " .. tostring(compileError))
+end
 return chunk()
 `;
 }
 function extractProtected(text){
- const levelMatch=text.match(/local\s+VEXIS_LEVEL\s*=\s*"(basic|medium|advanced)"/i);
- const hashMatch=text.match(/local\s+VEXIS_CHECKSUM\s*=\s*"([a-f0-9]{8})"/i);
- // Capture Lua long-string delimiters and payload.
- const dataMatch=text.match(/local\s+VEXIS_DATA\s*=\s*\[(=*)\[([\s\S]*?)\]\1\]/);
- if(levelMatch&&dataMatch)return {level:levelMatch[1].toLowerCase(),hash:hashMatch?hashMatch[1]:null,payload:dataMatch[2]};
- const oldLevel=text.match(/NIVEL\s*:\s*(advanced|medium|basic)/i);
- const oldData=text.match(/return\s*\[(=*)\[([\s\S]*?)\]\1\]/);
- if(oldLevel&&oldData)return {level:oldLevel[1].toLowerCase(),hash:null,payload:oldData[2]};
- throw new Error('Formato Vexis no reconocido');
+ const level=text.match(/local\s+VEXIS_LEVEL\s*=\s*"(basic|medium|advanced)"/i);
+ const hash=text.match(/local\s+VEXIS_CHECKSUM\s*=\s*"([a-f0-9]{8})"/i);
+ const data=text.match(/local\s+VEXIS_DATA\s*=\s*\[(=*)\[([\s\S]*?)\]\1\]/);
+ if(!level||!data) throw new Error('No se reconoce el formato de un archivo Vexis 2.0.');
+ return {level:level[1].toLowerCase(),hash:hash?hash[1].toLowerCase():null,payload:data[2]};
 }
-function recoverSource(text){
+function recover(text){
  const info=extractProtected(text);
- const source=decodeBase64(reversePayload(info.payload,info.level));
- const actualHash=checksum(source);
- if(info.hash&&actualHash!==info.hash)throw new Error('La integridad del código no coincide');
- return {source,level:info.level,hash:actualHash};
+ const payload=reversePayload(info.payload,info.level);
+ const source=decodeUtf8(base64ToBytes(payload));
+ const actual=checksum(source);
+ if(info.hash && actual!==info.hash) throw new Error('El checksum no coincide: el contenido pudo modificarse o dañarse.');
+ return {source,level:info.level,hash:actual};
 }
 function obfuscate(){
- const source=$('input').value,level=$('level').value;
- if(!source.trim()){showStatus('Escribe un código primero',true);return;}
+ const source=input.value, level=$('level').value;
+ if(!source.trim()){status('Pega o escribe un código Lua antes de ofuscar.','error');return;}
  try{
-  const payload=transformPayload(encodeBase64(source),level);
-  $('output').value=generateLoader(payload,level,checksum(source));
-  $('autoDetect').textContent='Nivel generado: '+level.toUpperCase();
-  showStatus('Código protegido y cargador generado correctamente.');
- }catch(e){showStatus(e.message,true);}
+  const payload=transformPayload(bytesToBase64(utf8.encode(source)),level);
+  output.value=generateLoader(payload,level,checksum(source));
+  $('detected').textContent='Nivel generado: '+level.toUpperCase();
+  updateCounts();status('Protección generada. Ahora usa VALIDAR para comprobar que el archivo puede recuperarse.','ok');
+ }catch(e){status(e.message,'error');}
 }
 function deobfuscate(){
- const text=$('input').value;
- if(!text.trim()){showStatus('Pega un código protegido',true);return;}
+ if(!input.value.trim()){status('Pega un archivo Vexis protegido.','error');return;}
  try{
-  const result=recoverSource(text);
-  $('output').value=result.source;
-  $('autoDetect').textContent='Nivel detectado: '+result.level.toUpperCase();
-  showStatus('Código recuperado. Integridad correcta.');
- }catch(e){$('output').value='';showStatus(e.message,true);}
+  const result=recover(input.value);output.value=result.source;
+  $('level').value=result.level;$('detected').textContent='Nivel detectado: '+result.level.toUpperCase();
+  updateCounts();status('Código recuperado correctamente. Checksum: '+result.hash,'ok');
+ }catch(e){output.value='';updateCounts();status(e.message,'error');}
 }
-function validateCode(){
- // FIX: validar primero el resultado recién generado, no el código fuente de entrada.
- const output=$('output').value.trim();
- const input=$('input').value.trim();
- const text=output||input;
- if(!text){showStatus('No hay código para validar',true);return;}
+function validate(){
+ const candidate=(output.value.trim() && output.value.includes('VEXIS_DATA'))?output.value:input.value;
+ if(!candidate.trim()){status('No hay código para validar.','error');return;}
  try{
-  const result=recoverSource(text);
-  $('autoDetect').textContent='Nivel detectado: '+result.level.toUpperCase()+' | SHA: '+result.hash;
-  showStatus('✓ Código Vexis válido. Integridad correcta.');
- }catch(e){
-  showStatus('Validación fallida: '+e.message,true);
- }
+  const result=recover(candidate);
+  $('detected').textContent='Válido: '+result.level.toUpperCase()+' · '+result.hash;
+  status('✓ Validación correcta: el contenido se recupera y el checksum coincide. Esto no ejecuta Lua ni garantiza compatibilidad con un executor.','ok');
+ }catch(e){status('Validación fallida: '+e.message,'error');}
 }
-async function copyOutput(){
- const output=$('output');
- if(!output.value){showStatus('No hay contenido para copiar',true);return;}
- try{await navigator.clipboard.writeText(output.value);showStatus('Copiado correctamente.');}
- catch(e){output.focus();output.select();const ok=document.execCommand('copy');showStatus(ok?'Copiado correctamente.':'No se pudo copiar.',!ok);}
+async function copy(){
+ if(!output.value){status('No hay resultado para copiar.','error');return;}
+ try{
+  if(navigator.clipboard && window.isSecureContext) await navigator.clipboard.writeText(output.value);
+  else {output.focus();output.select();if(!document.execCommand('copy'))throw new Error();}
+  status('Resultado copiado.','ok');
+ }catch(_){status('No se pudo copiar automáticamente. Selecciona el texto del resultado y cópialo manualmente.','error');}
 }
-function downloadLua(){
- const content=$('output').value;
- if(!content.trim()){showStatus('No hay código para descargar',true);return;}
- const blob=new Blob([content],{type:'text/plain;charset=utf-8'});
- const url=URL.createObjectURL(blob),link=document.createElement('a');
- link.href=url;link.download='Vexis_Protected.lua';
- document.body.appendChild(link);link.click();link.remove();URL.revokeObjectURL(url);
- showStatus('Archivo Lua generado.');
+function download(){
+ if(!output.value.trim()){status('No hay resultado para descargar.','error');return;}
+ const blob=new Blob([output.value],{type:'text/plain;charset=utf-8'});
+ const url=URL.createObjectURL(blob),a=document.createElement('a');
+ a.href=url;a.download='Vexis_Protected.lua';document.body.appendChild(a);a.click();a.remove();
+ setTimeout(()=>URL.revokeObjectURL(url),1000);status('Archivo Vexis_Protected.lua descargado.','ok');
 }
-function clearAll(){
- $('input').value='';$('output').value='';$('status').textContent='';$('autoDetect').textContent='';
+function clear(){
+ input.value='';output.value='';$('detected').textContent='Listo para procesar';
+ updateCounts();status('Campos limpiados.','');
 }
-$('input').addEventListener('input',()=>$('autoDetect').textContent='');
+$('obfuscate').addEventListener('click',obfuscate);
+$('deobfuscate').addEventListener('click',deobfuscate);
+$('validate').addEventListener('click',validate);
+$('copy').addEventListener('click',copy);
+$('download').addEventListener('click',download);
+$('clear').addEventListener('click',clear);
+input.addEventListener('input',()=>{updateCounts();$('detected').textContent='Entrada modificada';});
+output.addEventListener('input',updateCounts);
+updateCounts();
 </script>
 </body>
-</html>
+</html> 
