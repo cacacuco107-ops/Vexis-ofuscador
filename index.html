@@ -3,133 +3,193 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Vexis // Universal Code Protector</title>
+    <title>Vexis // Ofuscador & Desofuscador Lua</title>
     <style>
         :root {
-            --bg-color: #0c0d12;
-            --panel-bg: #161821;
-            --accent: #00ff66;
-            --text: #d0d0dc;
-            --border: #2a2d3d;
-            --input-bg: #090a0e;
+            --bg: #0a0a0c;
+            --panel: #12131a;
+            --green: #00ff66;
+            --blue: #00bbff;
+            --red: #ff5555;
+            --text: #c0c0d0;
+            --border: #222638;
+            --input: #07080a;
         }
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Courier New', Courier, monospace; }
-        body { background-color: var(--bg-color); color: var(--text); padding: 20px; display: flex; flex-direction: column; align-items: center; min-height: 100vh; }
-        .container { width: 100%; max-width: 900px; background: var(--panel-bg); border: 1px solid var(--border); border-radius: 10px; padding: 25px; box-shadow: 0 4px 20px rgba(0,0,0,0.5); }
-        h1 { color: var(--accent); font-size: 1.4rem; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 1px; }
-        p.sub { font-size: 0.8rem; color: #888; margin-bottom: 20px; }
-        .section { margin-bottom: 15px; }
-        label { display: block; margin-bottom: 8px; color: var(--accent); font-size: 0.85rem; font-weight: bold; }
-        select, textarea { width: 100%; background: var(--input-bg); color: var(--accent); border: 1px solid var(--border); border-radius: 6px; padding: 12px; font-size: 0.9rem; outline: none; }
-        select { margin-bottom: 15px; cursor: pointer; color: var(--text); }
-        select:focus, textarea:focus { border-color: var(--accent); }
-        textarea { height: 160px; resize: vertical; }
-        .btn-group { display: flex; gap: 10px; margin-top: 15px; }
-        button { flex: 1; background: transparent; color: var(--accent); border: 1px solid var(--accent); padding: 12px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 0.9rem; transition: 0.2s; }
-        button:hover { background: var(--accent); color: var(--bg-color); }
-        button.secondary { color: #ff5555; border-color: #ff5555; }
-        button.secondary:hover { background: #ff5555; color: #fff; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Courier New', monospace; }
+        body {
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 25px;
+        }
+        h1 { color: var(--green); font-size: 1.4rem; margin-bottom: 5px; }
+        .subtitle { color: #666; font-size: 0.85rem; margin-bottom: 20px; }
+        label { display: block; color: var(--green); margin-bottom: 8px; font-size: 0.9rem; }
+        textarea {
+            width: 100%;
+            height: 140px;
+            background: var(--input);
+            color: var(--green);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            padding: 12px;
+            font-size: 0.9rem;
+            resize: vertical;
+            margin-bottom: 15px;
+        }
+        textarea:focus { outline: none; border-color: var(--green); }
+        .btn-row { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 20px; }
+        button {
+            padding: 10px 18px;
+            border-radius: 4px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: none;
+        }
+        .btn-obf { background: var(--green); color: #000; }
+        .btn-obf:hover { background: #00cc44; }
+        .btn-deobf { background: var(--blue); color: #000; }
+        .btn-deobf:hover { background: #0088cc; }
+        .btn-copy { background: #8855ff; color: white; }
+        .btn-copy:hover { background: #6633dd; }
+        .btn-clear { background: var(--red); color: white; }
+        .btn-clear:hover { background: #cc3333; }
+        .level-select {
+            background: var(--input);
+            color: var(--text);
+            border: 1px solid var(--border);
+            padding: 8px;
+            border-radius: 4px;
+            margin-bottom: 15px;
+            width: 100%;
+            max-width: 300px;
+        }
+        .status {
+            margin-top: 10px;
+            font-size: 0.85rem;
+            height: 20px;
+        }
+        .success { color: var(--green); }
+        .error { color: var(--red); }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>[§] Vexis // Universal Code Protector</h1>
-        <p class="sub">Blindaje de código ultra compatible para Luau / Delta</p>
+        <h1>[§] Vexis // Lua Protector</h1>
+        <div class="subtitle">Ofusca y desofusca tus scripts de forma segura</div>
 
-        <div class="section">
-            <label>&gt; CÓDIGO DE ENTRADA:</label>
-            <textarea id="inputCode" placeholder="Pega aquí tu script de Roblox..."></textarea>
-            
-            <div class="btn-group">
-                <button onclick="protectCode()">BLINDAR CÓDIGO</button>
-                <button class="secondary" onclick="clearFields()">LIMPIAR</button>
-            </div>
+        <label>Nivel de protección:</label>
+        <select id="level" class="level-select">
+            <option value="basic">Básico (Base64)</option>
+            <option value="medium">Medio (Base64 + Invertido)</option>
+            <option value="advanced">Avanzado (Desplazamiento de caracteres)</option>
+        </select>
+
+        <label for="input">&gt; Código de entrada:</label>
+        <textarea id="input" placeholder="Pega aquí tu script .lua..."></textarea>
+
+        <div class="btn-row">
+            <button class="btn-obf" onclick="obfuscate()">🔒 OFUSCAR</button>
+            <button class="btn-deobf" onclick="deobfuscate()">🔓 DESOFUSCAR</button>
+            <button class="btn-copy" onclick="copyOutput()">📋 COPIAR</button>
+            <button class="btn-clear" onclick="clearAll()">✖ LIMPIAR</button>
         </div>
 
-        <div class="section">
-            <label>&gt; RESULTADO BLINDADO:</label>
-            <textarea id="outputCode" readonly placeholder="El código protegido aparecerá aquí..."></textarea>
-            
-            <div class="btn-group">
-                <button onclick="copyCode()">COPIAR AL PORTAPAPELES</button>
-                <button onclick="downloadCode()">DESCARGAR ARCHIVO</button>
-            </div>
-        </div>
+        <label for="output">&gt; Resultado:</label>
+        <textarea id="output" readonly placeholder="El resultado aparecerá aquí..."></textarea>
+
+        <div class="status" id="status"></div>
     </div>
 
     <script>
-        function protectCode() {
-            const input = document.getElementById('inputCode').value;
-            if (!input) {
-                alert("¡Pega algo de código primero!");
-                return;
-            }
+        function showStatus(text, isError = false) {
+            const s = document.getElementById('status');
+            s.textContent = text;
+            s.className = 'status ' + (isError ? 'error' : 'success');
+            setTimeout(() => s.textContent = '', 3000);
+        }
+
+        function obfuscate() {
+            const input = document.getElementById('input').value;
+            const level = document.getElementById('level').value;
+            if (!input) { showStatus('Escribe algo primero', true); return; }
 
             try {
-                const encoder = new TextEncoder();
-                const rawBytes = encoder.encode(input);
-                
-                // Clave de desplazamiento aritmética segura
-                const key = Math.floor(Math.random() * 40) + 10;
-                let obfuscatedBytes = [];
-                for (let i = 0; i < rawBytes.length; i++) {
-                    obfuscatedBytes.push((rawBytes[i] + key) & 0xFF);
+                let payload = btoa(unescape(encodeURIComponent(input)));
+
+                if (level === 'medium') {
+                    payload = payload.split('').reverse().join('');
+                } else if (level === 'advanced') {
+                    payload = payload.split('').map(c =>
+                        String.fromCharCode(c.charCodeAt(0) + 3)
+                    ).join('');
                 }
 
-                let byteArrayStr = obfuscatedBytes.join(',');
-
-                let finalOutput = `--[[
-    VEXIS PROTECTED GUARD // ROBLOX / DELTA
+                const result = `--[[
+    VEXIS PROTECTED
+    Nivel: ${level.toUpperCase()}
+    ⚠️ Usa esta página para desofuscarlo después
 ]]--
-local _K = ${key}
-local _B = {${byteArrayStr}}
-local function _R()
-    local t = {}
-    for i = 1, #_B do
-        t[i] = string.char((_B[i] - _K) % 256)
-    end
-    local s = table.concat(t)
-    local f, err = loadstring(s)
-    if f then 
-        local success, res = pcall(f)
-        if not success then 
-            warn("Vexis Runtime Error: " .. tostring(res)) 
-        end
-    else 
-        warn("Vexis Compile Error: " .. tostring(err)) 
-    end
-end
-_R()`;
+return "${payload}"
+-- NIVEL:${level}`;
 
-                document.getElementById('outputCode').value = finalOutput;
-            } catch (err) {
-                alert("Error al procesar el código: " + err.message);
+                document.getElementById('output').value = result;
+                showStatus('✅ ¡Ofuscado correctamente!');
+            } catch (e) {
+                showStatus('❌ Error: ' + e.message, true);
             }
         }
 
-        function clearFields() {
-            document.getElementById('inputCode').value = '';
-            document.getElementById('outputCode').value = '';
+        function deobfuscate() {
+            const input = document.getElementById('input').value;
+            if (!input) { showStatus('Pega el código ofuscado', true); return; }
+
+            try {
+                const payloadMatch = input.match(/"([A-Za-z0-9+/=]+)"/);
+                const levelMatch = input.match(/NIVEL:\s*(\w+)/);
+
+                if (!payloadMatch) throw new Error('No se encontró código válido');
+
+                let payload = payloadMatch[1];
+                const level = levelMatch ? levelMatch[1].toLowerCase() : 'basic';
+
+                if (level === 'medium') {
+                    payload = payload.split('').reverse().join('');
+                } else if (level === 'advanced') {
+                    payload = payload.split('').map(c =>
+                        String.fromCharCode(c.charCodeAt(0) - 3)
+                    ).join('');
+                }
+
+                const decoded = decodeURIComponent(escape(atob(payload)));
+                document.getElementById('output').value = decoded;
+                showStatus('✅ ¡Desofuscado correctamente!');
+            } catch (e) {
+                showStatus('❌ Error: ' + e.message, true);
+            }
         }
 
-        function copyCode() {
-            const output = document.getElementById('outputCode');
-            if (!output.value) return;
-            output.select();
+        function copyOutput() {
+            const out = document.getElementById('output');
+            if (!out.value) return;
+            out.select();
             document.execCommand('copy');
-            alert('¡Código copiado al portapapeles!');
+            showStatus('📋 ¡Copiado al portapapeles!');
         }
 
-        function downloadCode() {
-            const code = document.getElementById('outputCode').value;
-            if (!code) return;
-            const blob = new Blob([code], { type: 'text/plain' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = 'vexis_protected.lua';
-            a.click();
-            URL.revokeObjectURL(url);
+        function clearAll() {
+            document.getElementById('input').value = '';
+            document.getElementById('output').value = '';
+            document.getElementById('status').textContent = '';
         }
     </script>
 </body>
