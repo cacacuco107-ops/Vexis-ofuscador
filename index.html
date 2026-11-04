@@ -49,7 +49,7 @@ footer{text-align:center;color:#58647a;font-size:.68rem;margin-top:22px;letter-s
 <main class="container">
 <header>
  <div class="brand"><div class="logo">§</div><div><h1>VEXIS <span>// LUA PROTECTOR</span></h1><p class="subtitle">Codifica · Recupera · Verifica · Exporta</p></div></div>
- <div class="version">VERSION 2.0</div>
+ <div class="version">VERSION 2.1</div>
 </header>
 
 <div class="controls">
@@ -63,8 +63,8 @@ footer{text-align:center;color:#58647a;font-size:.68rem;margin-top:22px;letter-s
 </div>
 
 <section class="section">
- <div class="section-head"><label for="input">01 / CÓDIGO DE ENTRADA</label><span class="hint" id="inputCount">0 caracteres</span></div>
- <textarea id="input" spellcheck="false" autocapitalize="off" autocomplete="off" placeholder="Pega aquí tu código Lua original o un archivo Vexis protegido..."></textarea>
+ <div class="section-head"><label for="input">01 / CÓDIGO O TEXTO DE ENTRADA</label><span class="hint" id="inputCount">0 caracteres</span></div>
+ <textarea id="input" spellcheck="false" autocapitalize="off" autocomplete="off" placeholder="Pega aquí tu script Lua, texto, JSON, o cualquier contenido..."></textarea>
 </section>
 
 <div class="actions">
@@ -72,7 +72,7 @@ footer{text-align:center;color:#58647a;font-size:.68rem;margin-top:22px;letter-s
  <button class="secondary" id="deobfuscate">◇ DESOFUSCAR</button>
  <button class="yellow" id="validate">✓ VALIDAR</button>
  <button class="purple" id="copy">▣ COPIAR</button>
- <button class="download" id="download">↓ DESCARGAR LUA</button>
+ <button class="download" id="download">↓ DESCARGAR</button>
  <button class="red" id="clear">× LIMPIAR</button>
 </div>
 
@@ -80,14 +80,14 @@ footer{text-align:center;color:#58647a;font-size:.68rem;margin-top:22px;letter-s
  <div class="section-head"><label for="output">02 / RESULTADO</label><span class="hint" id="outputCount">0 caracteres</span></div>
  <textarea id="output" readonly spellcheck="false" placeholder="El resultado aparecerá aquí..."></textarea>
 </section>
-<div class="status" id="status" role="status" aria-live="polite">Esperando código. Vexis funciona localmente; no envía tus scripts a ningún servidor.</div>
+<div class="status" id="status" role="status" aria-live="polite">Esperando contenido. Vexis detecta automáticamente si es Lua o texto plano.</div>
 
 <div class="info">
- <article><strong>01 — PROCESAMIENTO LOCAL</strong><p>La transformación se realiza en tu navegador. El código no se sube a un servidor.</p></article>
- <article><strong>02 — VALIDACIÓN REAL</strong><p>Comprueba que el contenido protegido se puede recuperar y que su checksum coincide.</p></article>
- <article><strong>03 — COMPATIBILIDAD</strong><p>Loader optimizado para executors de Roblox: Delta, Fluxus, Synapse, Hydrogen y similares.</p></article>
+ <article><strong>01 — AUTO DETECCIÓN</strong><p>Detecta si el contenido es Lua ejecutable o texto plano. Genera el loader correcto para cada caso.</p></article>
+ <article><strong>02 — MODO SCRIPT</strong><p>Para Lua: el loader desofusca y ejecuta con loadstring. Compatible con Delta, Fluxus, Synapse, Hydrogen.</p></article>
+ <article><strong>03 — MODO TEXTO</strong><p>Para texto, JSON, configs: el loader desofusca y retorna el string sin intentar ejecutarlo.</p></article>
 </div>
-<footer>VEXIS LUA PROTECTOR // STANDALONE EDITION</footer>
+<footer>VEXIS LUA PROTECTOR // STANDALONE EDITION v2.1</footer>
 </main>
 
 <script>
@@ -126,24 +126,20 @@ function checksum(text){
  for(let i=0;i<bytes.length;i++) sum=(sum+bytes[i]*((i%65521)+1))%4294967296;
  return Math.floor(sum).toString(16).padStart(8,'0');
 }
-
-// Desplazamiento solo en rango Base64 seguro (A-Z a-z 0-9 + /) para evitar
-// caracteres fuera de rango que rompen string.char en Luau
 function shiftChar(c, delta) {
- const BASE64_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
- const idx = BASE64_CHARS.indexOf(c);
- if (idx === -1) return c; // = y otros pasan sin cambio
- return BASE64_CHARS[(idx + delta + BASE64_CHARS.length) % BASE64_CHARS.length];
+ const B="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+ const idx=B.indexOf(c);
+ if(idx===-1) return c;
+ return B[(idx+delta+64)%64];
 }
-
-function transformPayload(payload, level){
+function transformPayload(payload,level){
  if(level==='medium') return payload.split('').reverse().join('');
- if(level==='advanced') return Array.from(payload, c => shiftChar(c, 7)).join('');
+ if(level==='advanced') return Array.from(payload,c=>shiftChar(c,7)).join('');
  return payload;
 }
-function reversePayload(payload, level){
+function reversePayload(payload,level){
  if(level==='medium') return payload.split('').reverse().join('');
- if(level==='advanced') return Array.from(payload, c => shiftChar(c, -7)).join('');
+ if(level==='advanced') return Array.from(payload,c=>shiftChar(c,-7)).join('');
  return payload;
 }
 function luaLongString(payload){
@@ -152,12 +148,50 @@ function luaLongString(payload){
  return '['+eq+'['+payload+']'+eq+']';
 }
 
-// Loader optimizado para executors Roblox (loadstring only, sin load)
-function generateLoader(payload, level, hash){
+// Detecta si el contenido parece Lua ejecutable
+function isLuaScript(source) {
+ const luaPatterns = [
+  /\blocal\s+\w+/,
+  /\bfunction\s+\w+/,
+  /\bend\b/,
+  /\breturn\b/,
+  /game:GetService/,
+  /Instance\.new/,
+  /pcall\s*\(/,
+  /task\.(wait|spawn|delay)/,
+  /Players\.LocalPlayer/,
+  /script\./
+ ];
+ let matches = 0;
+ for(const p of luaPatterns) if(p.test(source)) matches++;
+ return matches >= 2;
+}
+
+function generateLoader(payload, level, hash, isScript) {
+ const modeComment = isScript ? 'Modo: SCRIPT LUA — se ejecuta con loadstring' : 'Modo: TEXTO PLANO — retorna el contenido desofuscado';
+ const executor = isScript
+  ? `if type(loadstring) ~= "function" then
+    error("VEXIS: loadstring no disponible en este entorno")
+end
+
+local chunk, compileError = loadstring(source)
+if type(chunk) ~= "function" then
+    error("VEXIS: error de compilacion — " .. tostring(compileError))
+end
+
+local ok, runtimeResult = pcall(chunk)
+if not ok then
+    error("VEXIS: error al ejecutar — " .. tostring(runtimeResult))
+end
+
+return runtimeResult`
+  : `return source`;
+
  return `--[[
-  VEXIS LUA PROTECTOR 2.0
+  VEXIS LUA PROTECTOR 2.1
   Level: ${level.toUpperCase()}
-  Optimizado para: Delta, Fluxus, Synapse, Hydrogen y otros executors de Roblox
+  ${modeComment}
+  Compatible con: Delta, Fluxus, Synapse, Hydrogen y otros executors
 ]]
 
 local VEXIS_LEVEL = "${level}"
@@ -220,21 +254,7 @@ if calculateChecksum(source) ~= VEXIS_CHECKSUM then
     error("VEXIS: verificacion de integridad fallida — el archivo fue modificado")
 end
 
-if type(loadstring) ~= "function" then
-    error("VEXIS: loadstring no disponible en este entorno")
-end
-
-local chunk, compileError = loadstring(source)
-if type(chunk) ~= "function" then
-    error("VEXIS: error de compilacion — " .. tostring(compileError))
-end
-
-local ok, runtimeResult = pcall(chunk)
-if not ok then
-    error("VEXIS: error al ejecutar — " .. tostring(runtimeResult))
-end
-
-return runtimeResult
+${executor}
 `;
 }
 
@@ -242,7 +262,7 @@ function extractProtected(text){
  const level=text.match(/local\s+VEXIS_LEVEL\s*=\s*"(basic|medium|advanced)"/i);
  const hash=text.match(/local\s+VEXIS_CHECKSUM\s*=\s*"([a-f0-9]{8})"/i);
  const data=text.match(/local\s+VEXIS_DATA\s*=\s*\[(=*)\[([\s\S]*?)\]\1\]/);
- if(!level||!data) throw new Error('No se reconoce el formato de un archivo Vexis 2.0.');
+ if(!level||!data) throw new Error('No se reconoce el formato de un archivo Vexis 2.x.');
  return {level:level[1].toLowerCase(),hash:hash?hash[1].toLowerCase():null,payload:data[2]};
 }
 function recover(text){
@@ -255,32 +275,34 @@ function recover(text){
 }
 function obfuscate(){
  const source=input.value, level=$('level').value;
- if(!source.trim()){status('Pega o escribe un código Lua antes de ofuscar.','error');return;}
+ if(!source.trim()){status('Pega o escribe contenido antes de ofuscar.','error');return;}
  if(/<!doctype\s+html|<html[\s>]|<\/body>|<\/script>/i.test(source)){
-  status('Parece que pegaste HTML en lugar de Lua.','error');return;
+  status('Parece que pegaste HTML. Pega Lua o texto plano.','error');return;
  }
  try{
+  const isScript=isLuaScript(source);
   const payload=transformPayload(bytesToBase64(utf8.encode(source)),level);
-  const generated=generateLoader(payload,level,checksum(source));
+  const generated=generateLoader(payload,level,checksum(source),isScript);
   const test=recover(generated);
-  if(test.source!==source) throw new Error('La comprobación interna no recuperó exactamente el código original.');
+  if(test.source!==source) throw new Error('La comprobación interna no recuperó exactamente el contenido original.');
   output.value=generated;
-  $('detected').textContent='Nivel generado: '+level.toUpperCase();
+  const modeTag=isScript?'🟢 Modo SCRIPT detectado':'🔵 Modo TEXTO detectado';
+  $('detected').textContent=modeTag+' · Nivel: '+level.toUpperCase();
   updateCounts();
-  status('✅ Protección generada y verificada. Compatible con Delta, Fluxus, Synapse, Hydrogen.','ok');
- }catch(e){status('❌ ' + e.message,'error');}
+  status('✅ Protección generada y verificada. '+modeTag+'. Compatible con Delta, Fluxus, Synapse, Hydrogen.','ok');
+ }catch(e){status('❌ '+e.message,'error');}
 }
 function deobfuscate(){
  if(!input.value.trim()){status('Pega un archivo Vexis protegido.','error');return;}
  try{
   const result=recover(input.value);output.value=result.source;
   $('level').value=result.level;$('detected').textContent='Nivel detectado: '+result.level.toUpperCase();
-  updateCounts();status('✅ Código recuperado. Checksum: '+result.hash,'ok');
+  updateCounts();status('✅ Contenido recuperado. Checksum: '+result.hash,'ok');
  }catch(e){output.value='';updateCounts();status('❌ '+e.message,'error');}
 }
 function validate(){
  const candidate=(output.value.trim()&&output.value.includes('VEXIS_DATA'))?output.value:input.value;
- if(!candidate.trim()){status('No hay código para validar.','error');return;}
+ if(!candidate.trim()){status('No hay contenido para validar.','error');return;}
  try{
   const result=recover(candidate);
   $('detected').textContent='Válido: '+result.level.toUpperCase()+' · '+result.hash;
@@ -297,11 +319,13 @@ async function copy(){
 }
 function download(){
  if(!output.value.trim()){status('No hay resultado para descargar.','error');return;}
+ const isLua=output.value.includes('VEXIS_DATA');
  const blob=new Blob([output.value],{type:'text/plain;charset=utf-8'});
  const url=URL.createObjectURL(blob),a=document.createElement('a');
- a.href=url;a.download='Vexis_Protected.lua';document.body.appendChild(a);a.click();a.remove();
+ a.href=url;a.download=isLua?'Vexis_Protected.lua':'Vexis_Protected.txt';
+ document.body.appendChild(a);a.click();a.remove();
  setTimeout(()=>URL.revokeObjectURL(url),1000);
- status('📥 Vexis_Protected.lua descargado.','ok');
+ status('📥 Archivo descargado.','ok');
 }
 function clear(){
  input.value='';output.value='';$('detected').textContent='Listo para procesar';
