@@ -55,13 +55,11 @@ function obfuscate(){
  if(!source.trim()) return $('status').textContent = 'Pega contenido.';
 
  try {
-  // Llave y Auth para el servidor
   const key = "VexisLlaveMaestra2026"; 
   const auth = "VexisAuth2026";
   const payload = encodePayload(source, key);
   const isScript = /\blocal\s+\w+|\bfunction\s+\w+/.test(source);
 
-  // El script de Lua que pide el código limpio al servidor
   const result = `--[[
   VEXIS PROTECTOR (Server Enforced)
 ]]
@@ -71,20 +69,37 @@ local AUTH_CODE = "${auth}"
 
 local function getSource()
     local Http = game:GetService("HttpService")
-    local req = request or http_request or (syn and syn.request) or (http and http.request)
-    if not req then error("Executor HTTP unavailable") end
+    
+    -- DETECCIÓN DE HTTP COMPATIBLE CON DELTA (Como el script original)
+    local reqFn = request or http_request or (syn and syn.request) or (http and http.request)
+    
+    if not reqFn then 
+        warn("VEXIS: Tu executor no soporta peticiones HTTP (request).")
+        return nil 
+    end
     
     local body = Http:JSONEncode({payload = VEXIS_PAYLOAD, auth = AUTH_CODE})
-    local ok, res = pcall(req, {
+    local ok, res = pcall(reqFn, {
         Url = "${SERVER_URL}", 
         Method = "POST", 
         Headers = {["Content-Type"] = "application/json"},
         Body = body
     })
     
-    if not ok or res.StatusCode ~= 200 then return nil end
+    if not ok then 
+        warn("VEXIS: Error de conexión HTTP -> " .. tostring(res))
+        return nil 
+    end
+    
+    if res.StatusCode ~= 200 then 
+        warn("VEXIS: Servidor respondió con Status " .. tostring(res.StatusCode))
+        return nil 
+    end
+    
     local ok2, json = pcall(Http.JSONDecode, Http, res.Body)
     if ok2 and json and json.code then return json.code end
+    
+    warn("VEXIS: Fallo al decodificar la respuesta del servidor.")
     return nil
 end
 
@@ -102,7 +117,7 @@ end` :
 `;
 
   output.value = result;
-  $('status').textContent = '✅ Protección blindada. La llave nunca viaja.';
+  $('status').textContent = '✅ Protección generada. Lista para subir a GitHub.';
  } catch(e) {
   $('status').textContent = '❌ Error: ' + e.message;
  }
