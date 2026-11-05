@@ -104,6 +104,7 @@ function updateCounts(){
  $('outputCount').textContent=output.value.length.toLocaleString('es-MX')+' caracteres';
 }
 
+// --- UTILIDADES BASE64 ---
 function bytesToBase64(bytes){
  let binary=''; const step=0x8000;
  for(let i=0;i<bytes.length;i+=step) binary+=String.fromCharCode(...bytes.subarray(i,i+step));
@@ -117,6 +118,7 @@ function base64ToBytes(text){
  return bytes;
 }
 
+// --- ENCRIPTACIÓN Y COMPRESIÓN ---
 function xorCrypt(text, key) {
  const bytes = utf8.encode(text);
  let result = new Uint8Array(bytes.length);
@@ -305,6 +307,8 @@ function deobfuscate(){
  if(!input.value.trim()){status('Pega un archivo Vexis protegido.','error');return;}
  try{
   const text = input.value;
+  
+  // 1. Extraer llave y datos
   const keyMatch = text.match(/local\s+VEXIS_KEY\s*=\s*"([^"]+)"/i);
   const dataMatch = text.match(/local\s+VEXIS_DATA\s*=\s*\[(=*)\[([\s\S]*?)\]\1\]/);
   
@@ -313,16 +317,22 @@ function deobfuscate(){
   const key = keyMatch[1];
   const base64Data = dataMatch[2].replace(/\s/g,'');
   
+  // 2. Decodificar Base64
   const packedBytes = base64ToBytes(base64Data);
+  
+  // 3. Descomprimir LZ77 (El paso que faltaba)
   const xorBytes = lzDecompress(packedBytes);
   
+  // 4. Desencriptar XOR
   let resultBytes = new Uint8Array(xorBytes.length);
   for(let i=0; i<xorBytes.length; i++) resultBytes[i] = xorBytes[i] ^ key.charCodeAt(i % key.length);
   
+  // 5. Convertir a texto y mostrar
   output.value = utf8Dec.decode(resultBytes);
-  $('detected').textContent='Nivel detectado: LZ77 + XOR';
+  $('detected').textContent='Desofuscado: LZ77 + XOR';
   updateCounts();
   status('✅ Contenido recuperado exitosamente.','ok');
+  
  }catch(e){output.value='';updateCounts();status('❌ '+e.message,'error');}
 }
 
