@@ -68,18 +68,19 @@ local VEXIS_PAYLOAD = ${luaLongString(payload)}
 local AUTH_CODE = "${auth}"
 
 local function getSource()
+    -- Inicializamos HttpService como en el script original
     local Http = game:GetService("HttpService")
     
-    -- DETECCIÓN DE HTTP COMPATIBLE CON DELTA (Como el script original)
-    local reqFn = request or http_request or (syn and syn.request) or (http and http.request)
+    -- Usamos el mismo sistema de respaldo que el script original
+    local requestFn = request or http_request or (syn and syn.request) or (http and http.request)
     
-    if not reqFn then 
-        warn("VEXIS: Tu executor no soporta peticiones HTTP (request).")
-        return nil 
+    if type(requestFn) ~= "function" then 
+        error("VEXIS: Executor HTTP unavailable") 
     end
     
     local body = Http:JSONEncode({payload = VEXIS_PAYLOAD, auth = AUTH_CODE})
-    local ok, res = pcall(reqFn, {
+    
+    local ok, res = pcall(requestFn, {
         Url = "${SERVER_URL}", 
         Method = "POST", 
         Headers = {["Content-Type"] = "application/json"},
@@ -87,24 +88,24 @@ local function getSource()
     })
     
     if not ok then 
-        warn("VEXIS: Error de conexión HTTP -> " .. tostring(res))
+        warn("VEXIS: Network Failed - " .. tostring(res))
         return nil 
     end
     
     if res.StatusCode ~= 200 then 
-        warn("VEXIS: Servidor respondió con Status " .. tostring(res.StatusCode))
+        warn("VEXIS: Server Status " .. tostring(res.StatusCode))
         return nil 
     end
     
     local ok2, json = pcall(Http.JSONDecode, Http, res.Body)
     if ok2 and json and json.code then return json.code end
     
-    warn("VEXIS: Fallo al decodificar la respuesta del servidor.")
+    warn("VEXIS: Invalid JSON Response")
     return nil
 end
 
 local source = getSource()
-if not source then error("VEXIS: Error de autenticacion o servidor caido.") end
+if not source then error("VEXIS: Server Error") end
 
 ${isScript ? 
 `local env = getfenv and getfenv() or _G
