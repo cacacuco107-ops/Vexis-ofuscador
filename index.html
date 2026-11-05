@@ -6,34 +6,49 @@
 <meta name="theme-color" content="#090b12">
 <title>Vexis // Protector Multinivel</title>
 <style>
-:root{ --bg:#080a10;--panel:#111521;--panel2:#0b0f18;--green:#00f5a0;--text:#d7e0ee;--muted:#778399;--border:#242e42; }
+:root{ --bg:#080a10;--panel:#111521;--panel2:#0b0f18;--green:#00f5a0;--text:#d7e0ee;--muted:#778399;--border:#242e42; --purple:#9b70ff; --red:#ff637d; --yellow:#ffd166; }
 *{box-sizing:border-box;margin:0;padding:0;font-family:ui-monospace,SFMono-Regular,Consolas,"Courier New",monospace}
 body{min-height:100vh;padding:22px;color:var(--text);background:var(--bg)}
 .container{max-width:960px;margin:0 auto;padding:25px;background:linear-gradient(145deg,#141a29,#0e121c);border:1px solid var(--border);border-radius:16px;}
 header{display:flex;justify-content:space-between;margin-bottom:24px;color:var(--green)}
 select{width:100%;padding:11px 12px;background:var(--panel2);color:var(--text);border:1px solid var(--border);border-radius:9px;outline:none;margin-bottom:15px;}
-textarea{display:block;width:100%;min-height:180px;padding:14px;border:1px solid var(--border);border-radius:10px;background:var(--panel2);color:#b6f7db;margin-bottom:10px;}
-button{background:var(--green);color:#04120c;padding:11px 14px;border:none;border-radius:9px;font-weight:800;cursor:pointer;margin-right:5px;}
+textarea{display:block;width:100%;min-height:150px;padding:14px;border:1px solid var(--border);border-radius:10px;background:var(--panel2);color:#b6f7db;margin-bottom:10px;font-size:0.85rem;}
+.actions{display:flex;flex-wrap:wrap;gap:9px;margin-bottom:15px;}
+button{border:none;border-radius:9px;font-weight:800;cursor:pointer;padding:11px 14px;font-size:0.8rem;color:#04120c;}
+.btn-obf{background:var(--green);}
+.btn-deobf{background:var(--purple); color: #fff;}
+.btn-val{background:var(--yellow);}
+.btn-copy{background:var(--panel2); color: var(--text); border: 1px solid var(--border);}
+.btn-down{background:#10372e; color:#80ffd0; border: 1px solid #1d765b;}
+.btn-clear{background:var(--red); color: #fff;}
 .status{padding:11px;background:#080c13;border:1px solid var(--border);border-radius:9px;color:var(--muted);font-size:0.8rem;}
 </style>
 </head>
 <body>
 <main class="container">
- <header><h1>VEXIS // MULTINIVEL REAL</h1></header>
+ <header><h1>VEXIS // MULTINIVEL</h1></header>
  
  <label>NIVEL DE OFUSCACIÓN</label>
  <select id="level">
    <option value="classic">Clásico (Base64 + Shift +7)</option>
-   <option value="advanced" selected>Avanzado (XOR Dinámico)</option>
+   <option value="advanced">Avanzado (XOR Dinámico)</option>
    <option value="extreme">Extremo (XOR + Flattening Real)</option>
+   <option value="nightmare" selected>Pesadilla (Anti-Todas las IAs)</option>
  </select>
 
- <label>01 / CÓDIGO DE ENTRADA</label>
+ <label>01 / CÓDIGO O TEXTO</label>
  <textarea id="input" placeholder="Pega aquí tu script Lua..."></textarea>
- <button id="obfuscate">◆ OFUSCAR</button>
- <button id="copy">▣ COPIAR</button>
- <div style="height:10px"></div>
- <label>02 / RESULTADO (Para tu GitHub)</label>
+ 
+ <div class="actions">
+   <button class="btn-obf" id="obfuscate">◆ OFUSCAR</button>
+   <button class="btn-deobf" id="deobfuscate">◇ DESOFUSCAR</button>
+   <button class="btn-val" id="validate">✓ VALIDAR</button>
+   <button class="btn-copy" id="copy">▣ COPIAR</button>
+   <button class="btn-down" id="download">↓ DESCARGAR</button>
+   <button class="btn-clear" id="clear">× LIMPIAR</button>
+ </div>
+
+ <label>02 / RESULTADO</label>
  <textarea id="output" readonly placeholder="El resultado aparecerá aquí..."></textarea>
  <div class="status" id="status">Esperando...</div>
 </main>
@@ -42,17 +57,13 @@ button{background:var(--green);color:#04120c;padding:11px 14px;border:none;borde
 const $ = id => document.getElementById(id);
 const input = $('input'), output = $('output');
 
-const BASE64_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
-function shiftChar(c, delta) {
- const idx=BASE64_CHARS.indexOf(c);
- if(idx===-1) return c;
- return BASE64_CHARS[(idx+delta+64)%64];
+function isLuaScript(source) {
+ const luaPatterns = [/\blocal\s+\w+/, /\bfunction\s+\w+/, /\bend\b/, /\breturn\b/, /game:GetService/, /Instance\.new/, /pcall\s*\(/];
+ let matches = 0; for(const p of luaPatterns) if(p.test(source)) matches++;
+ return matches >= 2;
 }
 
-function luaLongString(payload){
- let eq=''; while(payload.includes(']'+eq+']')) eq+='=';
- return '['+eq+'['+payload+']'+eq+']';
-}
+const BASE64_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
 function xorString(text, key) {
     let result = "";
@@ -61,209 +72,123 @@ function xorString(text, key) {
     }
     return result;
 }
+function b64e(str) { return btoa(unescape(encodeURIComponent(str))); }
+function b64d(str) { return decodeURIComponent(escape(atob(str))); }
+
+function encodeNightmare(text) {
+    // Llave basada en la fecha (Año * Mes * Día)
+    const date = new Date();
+    const key = "V" + (date.getFullYear() * (date.getMonth() + 1) * date.getDate());
+    
+    // Doble capa de XOR y Base64
+    let b64_1 = b64e(text);
+    let enc_1 = xorString(b64_1, key);
+    let b64_2 = b64e(enc_1);
+    let enc_2 = xorString(b64_2, "X");
+    return b64e(enc_2);
+}
+
+function luaLongString(payload){
+ let eq=''; while(payload.includes(']'+eq+']')) eq+='=';
+ return '['+eq+'['+payload+']'+eq+']';
+}
 
 function obfuscate(){
  const source = input.value;
  if(!source.trim()) return $('status').textContent = 'Pega contenido.';
  const level = $('level').value;
- const isScript = /\blocal\s+\w+|\bfunction\s+\w+/.test(source);
+ const isScript = isLuaScript(source);
 
  try {
    let result = "";
+   let modeTag = isScript ? 'SCRIPT LUA' : 'TEXTO/JSON';
+   
+   const executor = isScript 
+       ? `local _env = getfenv and getfenv() or _G\nlocal _ls = _env.loadstring or loadstring\nif _ls then local _c = _ls(_src) if _c then _c() end end`
+       : `print("--- VEXIS DATA ---")\nprint(_src)\nprint("------------------")`;
 
-   if (level === "classic") {
-       // NIVEL 1: Base64 + Shift +7
-       let b64 = btoa(unescape(encodeURIComponent(source)));
-       let shifted = Array.from(b64).map(c => shiftChar(c, 7)).join('');
+   if (level === "nightmare") {
+       let payload = encodeNightmare(source);
        
-       result = `--[[ VEXIS PROTECTOR | CLASICO ]]
-local VEXIS_DATA = ${luaLongString(shifted)}
-local BASE64_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
-
-local function reverseTransform(data)
-    local result = {}
-    for i = 1, #data do
-        local c = data:sub(i, i)
-        local idx = BASE64_CHARS:find(c, 1, true)
-        if idx then result[i] = BASE64_CHARS:sub(((idx - 1 - 7) % 64) + 1, ((idx - 1 - 7) % 64) + 1)
-        else result[i] = c end
-    end
-    return table.concat(result)
-end
-
-local function decodeBase64(data)
-    local result, buffer, bits = {}, 0, 0
-    data = data:gsub("[^" .. BASE64_CHARS .. "=]", "")
-    for i = 1, #data do
-        local char = data:sub(i, i)
-        if char == "=" then break end
-        local value = BASE64_CHARS:find(char, 1, true)
-        if not value then error("VEXIS: Base64 corrupto") end
-        buffer = buffer * 64 + value - 1
-        bits = bits + 6
-        if bits >= 8 then
-            bits = bits - 8
-            local divisor = 2 ^ bits
-            result[#result + 1] = string.char(math.floor(buffer / divisor) % 256)
-            buffer = buffer % divisor
+       // Nombres de variables ofuscados (a, b, c, d)
+       // El flujo está enredado para que las IAs se pierdan
+       result = `--[[ VEXIS | PESADILLA | ${modeTag} ]]
+local _d = ${luaLongString(payload)}
+local function _a(b)
+    local c, d, e = {}, 0, 0
+    b = b:gsub("[^ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=]", "")
+    for f = 1, #b do
+        local g = b:sub(f, f)
+        if g == "=" then break end
+        local h = ("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"):find(g, 1, true)
+        d = d * 64 + h - 1
+        e = e + 6
+        if e >= 8 then
+            e = e - 8
+            c[#c+1] = string.char(math.floor(d / 2^e) % 256)
+            d = d % 2^e
         end
     end
-    return table.concat(result)
+    return table.concat(c)
 end
 
-local source = decodeBase64(reverseTransform(VEXIS_DATA))
-${isScript ? `loadstring(source)()` : `print(source)`}`;
-
-   } else if (level === "advanced") {
-       // NIVEL 2: XOR Dinámico
-       const key = "VexisAvanzado2026";
-       let b64 = btoa(unescape(encodeURIComponent(source)));
-       let encrypted = xorString(b64, key);
-       let payload = btoa(unescape(encodeURIComponent(encrypted)));
-
-       result = `--[[ VEXIS PROTECTOR | AVANZADO ]]
-local VEXIS_DATA = ${luaLongString(payload)}
-local k1 = "Vexis"; local k2 = "Avanzado"; local k3 = "2026"
-local secret_key = k1 .. k2 .. k3
-
-local B64 = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
-local function b64d(data)
-    local res, buf, bits = {}, 0, 0
-    data = data:gsub("[^" .. B64 .. "=]", "")
-    for i = 1, #data do
-        local char = data:sub(i,i)
-        if char == "=" then break end
-        local val = B64:find(char, 1, true)
-        if val then
-            buf = buf * 64 + val - 1; bits = bits + 6
-            if bits >= 8 then
-                bits = bits - 8
-                res[#res+1] = string.char(math.floor(buf / 2^bits) % 256)
-                buf = buf % 2^bits
-            end
-        end
+local function _b(c, k)
+    local d, e = 0, 1
+    for f = 1, 8 do
+        local g = c % 2
+        local h = k % 2
+        if g ~= h then d = d + e end
+        c = math.floor(c / 2); k = math.floor(k / 2); e = e * 2
     end
-    return table.concat(res)
+    return d
 end
 
-local function bxor(a, b)
-    local res, bit = 0, 1
-    for i = 1, 8 do
-        local a_bit = a % 2
-        local b_bit = b % 2
-        if a_bit ~= b_bit then res = res + bit end
-        a = math.floor(a / 2)
-        b = math.floor(b / 2)
-        bit = bit * 2
-    end
-    return res
-end
-
-local step1 = b64d(VEXIS_DATA)
-local step2 = {}
-for i = 1, #step1 do
-    step2[i] = string.char(bxor(string.byte(step1, i), string.byte(secret_key, (i - 1) % #secret_key + 1)))
-end
-local source = b64d(table.concat(step2))
-
-${isScript ? `loadstring(source)()` : `print(source)`}`;
-
-   } else if (level === "extreme") {
-       // NIVEL 3: XOR + Control Flow Flattening (Basura Real)
-       const key = "VexisExtremo2026";
-       let b64_1 = btoa(unescape(encodeURIComponent(source)));
-       let encrypted = xorString(b64_1, key);
-       let b64_2 = btoa(unescape(encodeURIComponent(encrypted)));
-       
-       let encrypted_2 = xorString(b64_2, "ClaveSecundaria");
-       let payload = btoa(unescape(encodeURIComponent(encrypted_2)));
-
-       result = `--[[ VEXIS PROTECTOR | EXTREMO (VM) ]]
-local VEXIS_DATA = ${luaLongString(payload)}
-
--- FLATTENING Y OPAQUE PREDICATES
-local v_state = 1
-local v_key_part1 = ""
-local v_key_part2 = ""
-local v_check = 0
-
--- Bucle de máquina de estados (Confunde a las IAs)
-while v_state ~= 99 do
-    if v_state == 1 then
-        -- Calculos dinamicos reales
-        local time_seed = math.floor(os.time() / 1000) % 10
-        v_check = (math.pi * time_seed) % 2
-        v_state = 2
-    elseif v_state == 2 then
-        -- La llave se arma aquí. Si se saltan este paso, falla.
-        v_key_part1 = "Vexis" .. "Extremo"
-        if v_check == 999.99 then error("FAULT") end
-        v_state = 3
-    elseif v_state == 3 then
-        v_key_part2 = "2026"
-        v_state = 99 -- Rompe el bucle
+-- Maquina de estados para la llave
+local _e = 1
+local _f = "" 
+local _g = ""
+while _e ~= 99 do
+    if _e == 1 then
+        local _h = os.date("*t")
+        local _i = _h.year * (_h.month + 1) * _h.day
+        _f = "V" .. tostring(_i)
+        _e = 2
+    elseif _e == 2 then
+        _g = "X"
+        _e = 99
     end
 end
 
-local secret_key = v_key_part1 .. v_key_part2
-local secondary_key = "ClaveSecundaria"
-
-local B64 = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
-local function b64d(data)
-    local res, buf, bits = {}, 0, 0
-    data = data:gsub("[^" .. B64 .. "=]", "")
-    for i = 1, #data do
-        local char = data:sub(i,i)
-        if char == "=" then break end
-        local val = B64:find(char, 1, true)
-        if val then
-            buf = buf * 64 + val - 1; bits = bits + 6
-            if bits >= 8 then
-                bits = bits - 8
-                res[#res+1] = string.char(math.floor(buf / 2^bits) % 256)
-                buf = buf % 2^bits
-            end
-        end
-    end
-    return table.concat(res)
+local _k = _a(_d)
+local _l = {}
+for m = 1, #_k do
+    _l[m] = string.char(_b(string.byte(_k, m), string.byte(_g, (m - 1) % #_g + 1)))
 end
+local _n = _a(table.concat(_l))
 
-local function bxor(a, b)
-    local res, bit = 0, 1
-    for i = 1, 8 do
-        local a_bit = a % 2
-        local b_bit = b % 2
-        if a_bit ~= b_bit then res = res + bit end
-        a = math.floor(a / 2)
-        b = math.floor(b / 2)
-        bit = bit * 2
-    end
-    return res
+local _o = {}
+for m = 1, #_n do
+    _o[m] = string.char(_b(string.byte(_n, m), string.byte(_f, (m - 1) % #_f + 1)))
 end
+local _src = _a(table.concat(_o))
 
--- Desencriptación Capa 2
-local step0 = b64d(VEXIS_DATA)
-local step1 = {}
-for i = 1, #step0 do
-    step1[i] = string.char(bxor(string.byte(step0, i), string.byte(secondary_key, (i - 1) % #secondary_key + 1)))
-end
-local b64_2 = b64d(table.concat(step1))
-
--- Desencriptación Capa 1 (Usa la llave armada en el bucle)
-local step2 = {}
-for i = 1, #b64_2 do
-    step2[i] = string.char(bxor(string.byte(b64_2, i), string.byte(secret_key, (i - 1) % #secret_key + 1)))
-end
-local source = b64d(table.concat(step2))
-
-${isScript ? `loadstring(source)()` : `print(source)`}`;
+${executor}`;
+   } else {
+       // Si elige otro nivel, le decimos que use Pesadilla
+       $('status').textContent = '⚠️ Selecciona el nivel PESADILLA para máxima protección.';
+       return;
    }
-
+   
    output.value = result;
-   $('status').textContent = '✅ Protección ' + level.toUpperCase() + ' generada.';
- } catch(e) {
-   $('status').textContent = '❌ Error: ' + e.message;
- }
+   $('status').textContent = `✅ Protección PESADILLA generada. Modo: ${modeTag}`;
+ } catch(e) { $('status').textContent = '❌ Error: ' + e.message; }
+}
+
+function validate() {
+    const text = input.value;
+    if(!text.trim()) return $('status').textContent = 'No hay código.';
+    if(!text.includes("VEXIS | PESADILLA")) return $('status').textContent = '❌ Falta la firma de Vexis.';
+    $('status').textContent = '✅ Estructura válida.';
 }
 
 async function copy(){
@@ -272,8 +197,26 @@ async function copy(){
  $('status').textContent = '📋 Copiado.';
 }
 
+function download() {
+ if(!output.value.trim()) return $('status').textContent = 'No hay resultado.';
+ const blob = new Blob([output.value], {type: 'text/plain;charset=utf-8'});
+ const url = URL.createObjectURL(blob), a = document.createElement('a');
+ a.href = url; a.download = 'Vexis_Protected.lua';
+ document.body.appendChild(a); a.click(); a.remove();
+ setTimeout(() => URL.revokeObjectURL(url), 1000);
+ $('status').textContent = '📥 Archivo descargado.';
+}
+
+function clear(){
+ input.value = ''; output.value = '';
+ $('status').textContent = 'Campos limpiados.';
+}
+
 $('obfuscate').addEventListener('click', obfuscate);
+$('validate').addEventListener('click', validate);
 $('copy').addEventListener('click', copy);
+$('download').addEventListener('click', download);
+$('clear').addEventListener('click', clear);
 </script>
 </body>
 </html>
