@@ -4,284 +4,143 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#090b12">
-<title>Vexis // VM Protector</title>
+<title>Vexis // Server Protector</title>
 <style>
-:root{
- --bg:#080a10;--panel:#111521;--panel2:#0b0f18;--green:#00f5a0;
- --blue:#20c8ff;--purple:#9b70ff;--red:#ff637d;--yellow:#ffd166;
- --text:#d7e0ee;--muted:#778399;--border:#242e42;
-}
+:root{ --bg:#080a10;--panel:#111521;--panel2:#0b0f18;--green:#00f5a0;--text:#d7e0ee;--muted:#778399;--border:#242e42; }
 *{box-sizing:border-box;margin:0;padding:0;font-family:ui-monospace,SFMono-Regular,Consolas,"Courier New",monospace}
-body{min-height:100vh;padding:22px;color:var(--text);background:
- radial-gradient(ellipse at 10% 0%,#00f5a012,transparent 35%),
- radial-gradient(ellipse at 95% 15%,#7855ff18,transparent 32%),var(--bg)}
-.container{max-width:960px;margin:0 auto;padding:25px;background:linear-gradient(145deg,#141a29,#0e121c);
- border:1px solid var(--border);border-radius:16px;box-shadow:0 18px 70px #0009,0 0 35px #00f5a00b;position:relative;overflow:hidden}
-.container:before{content:"";position:absolute;inset:0 0 auto;height:2px;background:linear-gradient(90deg,var(--green),var(--blue),var(--purple))}
-header{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:24px}
-.brand{display:flex;align-items:center;gap:13px}.logo{width:43px;height:43px;display:grid;place-items:center;border:1px solid #00f5a055;border-radius:12px;color:var(--green);font-size:21px;text-shadow:0 0 14px var(--green);box-shadow:inset 0 0 18px #00f5a015}
-h1{font-size:clamp(1.2rem,4vw,1.65rem);letter-spacing:.04em;color:#effff9}h1 span{color:var(--green)}
-.subtitle{color:var(--muted);font-size:.78rem;margin-top:5px}
-.version{font-size:.7rem;color:var(--green);border:1px solid #00f5a044;background:#00f5a00c;padding:7px 10px;border-radius:20px;white-space:nowrap}
-.section{margin-top:19px}.section-head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:9px}
-label{font-size:.82rem;color:#a8f8d7;font-weight:700}.hint{font-size:.7rem;color:var(--muted)}
-textarea{display:block;width:100%;min-height:180px;resize:vertical;padding:14px;border:1px solid var(--border);border-radius:10px;background:var(--panel2);color:#b6f7db;font-size:.82rem;line-height:1.55;outline:none;tab-size:4;transition:.2s}
-textarea:focus,select:focus{border-color:#00d995;box-shadow:0 0 0 3px #00f5a012}
-textarea[readonly]{color:#9fdcff}
-.controls{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:14px;align-items:end}
-select{width:100%;max-width:360px;padding:11px 12px;background:var(--panel2);color:var(--text);border:1px solid var(--border);border-radius:9px;outline:none}
-.actions{display:flex;flex-wrap:wrap;gap:9px;margin-top:15px}
-button{border:1px solid transparent;border-radius:9px;padding:11px 14px;font-size:.77rem;font-weight:800;letter-spacing:.02em;cursor:pointer;transition:transform .18s,filter .18s,box-shadow .18s}
-button:hover{transform:translateY(-2px);filter:brightness(1.12)}button:active{transform:translateY(0)}
-.primary{background:var(--green);color:#04120c;box-shadow:0 5px 18px #00f5a022}.secondary{background:#102c3b;color:#8ce4ff;border-color:#1b617b}
-.purple{background:#281d46;color:#cbb7ff;border-color:#59428c}.yellow{background:#3a3018;color:var(--yellow);border-color:#74602b}
-.red{background:#381b27;color:#ff9aac;border-color:#713347}.download{background:#10372e;color:#80ffd0;border-color:#1d765b}
-.status{min-height:42px;margin-top:14px;padding:11px 13px;border:1px solid var(--border);border-radius:9px;background:#080c13;color:var(--muted);font-size:.77rem;line-height:1.45;overflow-wrap:anywhere}
-.status.ok{color:var(--green);border-color:#00f5a033}.status.error{color:#ff8ca0;border-color:#ff637d44}
-.info{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:17px}
-.info article{padding:12px;border:1px solid var(--border);border-radius:10px;background:#0b101a}
-.info strong{display:block;color:#b9c8dc;font-size:.73rem;margin-bottom:5px}.info p{color:var(--muted);font-size:.68rem;line-height:1.5}
-footer{text-align:center;color:#58647a;font-size:.68rem;margin-top:22px;letter-spacing:.08em}
-@media(max-width:650px){body{padding:10px}.container{padding:16px}.controls{grid-template-columns:1fr}.version{align-self:flex-start}.info{grid-template-columns:1fr}.actions button{flex:1 1 42%}textarea{min-height:155px}}
+body{min-height:100vh;padding:22px;color:var(--text);background:var(--bg)}
+.container{max-width:960px;margin:0 auto;padding:25px;background:linear-gradient(145deg,#141a29,#0e121c);border:1px solid var(--border);border-radius:16px;}
+header{display:flex;justify-content:space-between;margin-bottom:24px;color:var(--green)}
+textarea{display:block;width:100%;min-height:180px;padding:14px;border:1px solid var(--border);border-radius:10px;background:var(--panel2);color:#b6f7db;margin-bottom:10px;}
+button{background:var(--green);color:#04120c;padding:11px 14px;border:none;border-radius:9px;font-weight:800;cursor:pointer;margin-right:5px;}
+.status{padding:11px;background:#080c13;border:1px solid var(--border);border-radius:9px;color:var(--muted);font-size:0.8rem;}
 </style>
 </head>
 <body>
 <main class="container">
-<header>
- <div class="brand"><div class="logo">§</div><div><h1>VEXIS <span>// VM PROTECTOR</span></h1><p class="subtitle">Codifica · Recupera · Verifica · Exporta</p></div></div>
- <div class="version">PROTECTOR</div>
-</header>
-
-<section class="section">
- <div class="section-head"><label for="input">01 / CÓDIGO O TEXTO DE ENTRADA</label><span class="hint" id="inputCount">0 caracteres</span><span class="hint" id="detected" style="margin-left:auto">Auto-detección activa</span></div>
- <textarea id="input" spellcheck="false" autocapitalize="off" autocomplete="off" placeholder="Pega aquí tu script Lua, HTML, JSON, o cualquier contenido..."></textarea>
-</section>
-
-<div class="actions">
- <button class="primary" id="obfuscate">◆ OFUSCAR</button>
- <button class="secondary" id="deobfuscate">◇ DESOFUSCAR</button>
- <button class="yellow" id="validate">✓ VALIDAR</button>
- <button class="purple" id="copy">▣ COPIAR</button>
- <button class="download" id="download">↓ DESCARGAR</button>
- <button class="red" id="clear">× LIMPIAR</button>
-</div>
-
-<section class="section">
- <div class="section-head"><label for="output">02 / RESULTADO</label><span class="hint" id="outputCount">0 caracteres</span></div>
- <textarea id="output" readonly spellcheck="false" placeholder="El resultado aparecerá aquí..."></textarea>
-</section>
-<div class="status" id="status" role="status" aria-live="polite">Esperando contenido. Vexis detecta automáticamente qué tipo de archivo es.</div>
-
-<div class="info">
- <article><strong>01 — AUTO DETECCIÓN</strong><p>Reconoce Lua ejecutable, HTML, JSON y texto plano automáticamente.</p></article>
- <article><strong>02 — VM SAFE-ENGINE</strong><p>Usa `bit32.bxor` nativo de Delta. Cero errores de ejecución.</p></article>
- <article><strong>03 — ANTI-IA</strong><p>Opaque predicates para confundir analizadores.</p></article>
-</div>
-<footer>VEXIS VM PROTECTOR // STANDALONE EDITION</footer>
+ <header><h1>VEXIS // SERVER PROTECTOR</h1></header>
+ <label>01 / CÓDIGO DE ENTRADA</label>
+ <textarea id="input" placeholder="Pega aquí tu script Lua..."></textarea>
+ <button id="obfuscate">◆ OFUSCAR CON SERVIDOR</button>
+ <button id="copy">▣ COPIAR</button>
+ <div style="height:10px"></div>
+ <label>02 / RESULTADO (Para tu GitHub)</label>
+ <textarea id="output" readonly placeholder="El resultado aparecerá aquí..."></textarea>
+ <div class="status" id="status">Esperando...</div>
 </main>
 
 <script>
-'use strict';
 const $ = id => document.getElementById(id);
 const input = $('input'), output = $('output');
 
-function status(message, type='') {
- const node=$('status'); node.textContent=message; node.className='status '+type;
-}
-function updateCounts(){
- $('inputCount').textContent=input.value.length.toLocaleString('es-MX')+' caracteres';
- $('outputCount').textContent=output.value.length.toLocaleString('es-MX')+' caracteres';
+// ¡CAMBIA ESTA URL POR LA DE TU RENDER!
+const SERVER_URL = "https://tu-url-de-render.onrender.com/unlock";
+
+function luaLongString(payload){
+ let eq=''; while(payload.includes(']'+eq+']')) eq+='=';
+ return '['+eq+'['+payload+']'+eq+']';
 }
 
-function isLuaScript(source) {
- if (!source || !source.trim()) return false;
- const luaPatterns = [/\blocal\s+\w+/, /\bfunction\s+\w+/, /\bend\b/, /\breturn\b/, /game:GetService/, /Instance\.new/, /pcall\s*\(/, /task\.(wait|spawn|delay)/, /Players\.LocalPlayer/, /script\./];
- let matches = 0; for(const p of luaPatterns) if(p.test(source)) matches++;
- return matches >= 2;
-}
-
-function encryptString(str, key) {
+function encodePayload(text, key) {
+    let b64 = btoa(unescape(encodeURIComponent(text)));
     let result = "";
-    for (let i = 0; i < str.length; i++) {
-        result += String.fromCharCode(str.charCodeAt(i) ^ key.charCodeAt(i % key.length));
+    for (let i = 0; i < b64.length; i++) {
+        result += String.fromCharCode(b64.charCodeAt(i) ^ key.charCodeAt(i % key.length));
     }
-    return result.split('').map(c => c.charCodeAt(0).toString(16).padStart(2, '0')).join('');
-}
-
-function decryptString(hex, key) {
-    if (!hex || hex.length % 2 !== 0) throw new Error('Formato hexadecimal inválido.');
-    let str = "";
-    for (let i = 0; i < hex.length; i += 2) {
-        str += String.fromCharCode(parseInt(hex.substr(i, 2), 16));
-    }
-    let result = "";
-    for (let i = 0; i < str.length; i++) {
-        result += String.fromCharCode(str.charCodeAt(i) ^ key.charCodeAt(i % key.length));
-    }
-    return result;
-}
-
-function generateKey() {
-    const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-    let key = ""; for(let i=0; i<12; i++) key += chars.charAt(Math.floor(Math.random() * chars.length));
-    return key;
+    return btoa(unescape(encodeURIComponent(result)));
 }
 
 function obfuscate(){
-    const source = input.value;
-    if (!source.trim()) return status("Pega contenido antes de ofuscar.", "error");
+ const source = input.value;
+ if(!source.trim()) return $('status').textContent = 'Pega contenido.';
 
-    try {
-        const isScript = isLuaScript(source);
-        const key = generateKey();
-        const encryptedHex = encryptString(source, key);
+ try {
+  const key = "VexisLlaveMaestra2026";
+  const payload = encodePayload(source, key);
 
-        let executor = "";
-        if (isScript) {
-            executor = `        local f, err = loadstring(decrypted)
-        if f then pcall(f) end`;
-        } else {
-            executor = `        print("--- VEXIS PROTECTED DATA ---")
-        print(decrypted)
-        print("-----------------------------")`;
-        }
-
-        const result = `--[[
-  VEXIS VM PROTECTOR
-  Engine: LPH-VM [Level 3]
-  ${isScript ? 'Modo: SCRIPT LUA' : 'Modo: TEXTO/HTML/JSON'}
+  const result = `--[[
+  VEXIS PROTECTOR (Server Enforced)
 ]]
 
-local v_key = "${key}"
-local v_data = "${encryptedHex}"
+local VEXIS_PAYLOAD = ${luaLongString(payload)}
 
-local function u_hex(str)
-    return (str:gsub('..', function (cc)
-        return string.char(tonumber(cc, 16))
-    end))
+local function getKey()
+    local req = request or http_request or (syn and syn.request) or (http and http.request)
+    if not req then error("Executor HTTP unavailable") end
+    local ok, res = pcall(req, {Url = "${SERVER_URL}", Method = "GET"})
+    if not ok or res.StatusCode ~= 200 then return nil end
+    local Http = game:GetService("HttpService")
+    local ok2, json = pcall(Http.JSONDecode, Http, res.Body)
+    if ok2 and json and json.key then return json.key end
+    return nil
 end
 
-local function u_xor(str, key)
-    local res = {}
-    for i = 1, #str do
-        local b1 = string.byte(str, i)
-        local b2 = string.byte(key, (i - 1) % #key + 1)
-        res[i] = string.char(bit32.bxor(b1, b2))
+local key = getKey()
+if not key then error("VEXIS: Error de autenticacion con el servidor.") end
+
+local B64 = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
+local function b64d(data)
+    local res, buf, bits = {}, 0, 0
+    data = data:gsub("[^" .. B64 .. "=]", "")
+    for i = 1, #data do
+        local char = data:sub(i,i)
+        if char == "=" then break end
+        local val = B64:find(char, 1, true)
+        if val then
+            buf = buf * 64 + val - 1; bits = bits + 6
+            if bits >= 8 then
+                bits = bits - 8
+                res[#res+1] = string.char(math.floor(buf / 2^bits) % 256)
+                buf = buf % 2^bits
+            end
+        end
     end
     return table.concat(res)
 end
 
-local state = 0
-for i = 1, 10 do
-    state = state + (math.pi * i) % 2
-    if state == 999 then error("VM_FAULT") end
+local function bxor(a, b)
+    local res, bit = 0, 1
+    for i = 1, 8 do
+        local a_bit = a % 2
+        local b_bit = b % 2
+        if a_bit ~= b_bit then res = res + bit end
+        a = math.floor(a / 2)
+        b = math.floor(b / 2)
+        bit = bit * 2
+    end
+    return res
 end
 
-local ptr = 1
-while ptr == 1 do
-    local decrypted = u_xor(u_hex(v_data), v_key)
-    
-    if #decrypted > 0 then
-${executor}
-    end
-    
-    ptr = 0
+local step1 = b64d(VEXIS_PAYLOAD)
+local step2 = {}
+for i = 1, #step1 do
+    step2[i] = string.char(bxor(string.byte(step1, i), string.byte(key, (i - 1) % #key + 1)))
+end
+local source = b64d(table.concat(step2))
+
+local env = getfenv and getfenv() or _G
+local load_str = env.loadstring or loadstring
+if load_str then
+    local chunk = load_str(source)
+    if chunk then chunk() end
 end
 `;
 
-        output.value = result;
-        updateCounts();
-        const modeTag = isScript ? '🟢 Lua Ejecutable' : '🔵 Texto/HTML/JSON (No se ejecuta)';
-        status("✅ Protección generada. " + modeTag, "ok");
-    } catch (e) {
-        status("❌ Error: " + e.message, "error");
-    }
-}
-
-function deobfuscate(){
-    const text = input.value;
-    if (!text.trim()) return status("Pega el código VM primero.", "error");
-
-    try {
-        const keyMatch = text.match(/local v_key = "([^"]+)"/);
-        const dataMatch = text.match(/local v_data = "([^"]+)"/);
-
-        if (!keyMatch || !dataMatch) throw new Error("No es un script VM de Vexis.");
-
-        const key = keyMatch[1];
-        const hex = dataMatch[1];
-
-        const decrypted = decryptString(hex, key);
-        output.value = decrypted;
-        updateCounts();
-        status("✅ Contenido recuperado de la VM.", "ok");
-    } catch (e) {
-        output.value = "";
-        updateCounts();
-        status("❌ Error: " + e.message, "error");
-    }
-}
-
-function validate(){
-    if (!output.value.trim()) return status("No hay resultado para validar.", "error");
-    try {
-        const keyMatch = output.value.match(/local v_key = "([^"]+)"/);
-        const dataMatch = output.value.match(/local v_data = "([^"]+)"/);
-        if (keyMatch && dataMatch) {
-            status("✅ Estructura válida y completa.", "ok");
-        } else {
-            status("⚠️ Estructura generada correctamente.", "ok");
-        }
-    } catch (_) {
-        status("✅ Estructura generada correctamente.", "ok");
-    }
+  output.value = result;
+  $('status').textContent = '✅ Protección generada. Lista para subir a GitHub.';
+ } catch(e) {
+  $('status').textContent = '❌ Error: ' + e.message;
+ }
 }
 
 async function copy(){
-    const textToCopy = output.value;
-    if (!textToCopy) return status("No hay resultado para copiar.", "error");
-    try {
-        await navigator.clipboard.writeText(textToCopy);
-        status("📋 Resultado copiado correctamente.", "ok");
-    } catch (_) {
-        output.select();
-        document.execCommand('copy');
-        status("📋 Resultado copiado.", "ok");
-    }
-}
-
-function download(){
-    if (!output.value.trim()) return status("No hay resultado para descargar.", "error");
-    const isLua = output.value.includes('VEXIS VM PROTECTOR');
-    const ext = isLua ? '.lua' : '.txt';
-    const blob = new Blob([output.value], {type: 'text/plain;charset=utf-8'});
-    const url = URL.createObjectURL(blob), a = document.createElement('a');
-    a.href = url; a.download = 'Vexis_Protected' + ext;
-    document.body.appendChild(a); a.click(); a.remove();
-    setTimeout(() => URL.revokeObjectURL(url), 1000);
-    status("📥 Archivo descargado como Vexis_Protected" + ext, "ok");
-}
-
-function clear(){
-    input.value = '';
-    output.value = '';
-    updateCounts();
-    status("Campos limpiados.", "");
+ if(!output.value) return;
+ await navigator.clipboard.writeText(output.value);
+ $('status').textContent = '📋 Copiado.';
 }
 
 $('obfuscate').addEventListener('click', obfuscate);
-$('deobfuscate').addEventListener('click', deobfuscate);
-$('validate').addEventListener('click', validate);
 $('copy').addEventListener('click', copy);
-$('download').addEventListener('click', download);
-$('clear').addEventListener('click', clear);
-input.addEventListener('input', () => { 
-    updateCounts(); 
-    const detected = $('detected');
-    if (detected) detected.textContent = 'Entrada modificada';
-});
-output.addEventListener('input', updateCounts);
-updateCounts();
 </script>
 </body>
 </html>
