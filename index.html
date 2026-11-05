@@ -76,11 +76,8 @@ function b64e(str) { return btoa(unescape(encodeURIComponent(str))); }
 function b64d(str) { return decodeURIComponent(escape(atob(str))); }
 
 function encodeNightmare(text) {
-    // Llave basada en la fecha (Año * Mes * Día)
     const date = new Date();
     const key = "V" + (date.getFullYear() * (date.getMonth() + 1) * date.getDate());
-    
-    // Doble capa de XOR y Base64
     let b64_1 = b64e(text);
     let enc_1 = xorString(b64_1, key);
     let b64_2 = b64e(enc_1);
@@ -110,9 +107,7 @@ function obfuscate(){
    if (level === "nightmare") {
        let payload = encodeNightmare(source);
        
-       // Nombres de variables ofuscados (a, b, c, d)
-       // El flujo está enredado para que las IAs se pierdan
-       result = `--[[ VEXIS | PESADILLA | ${modeTag} ]]
+       result = `--[[ VEXIS PROTECTOR | PESADILLA | ${modeTag} ]]
 local _d = ${luaLongString(payload)}
 local function _a(b)
     local c, d, e = {}, 0, 0
@@ -143,7 +138,6 @@ local function _b(c, k)
     return d
 end
 
--- Maquina de estados para la llave
 local _e = 1
 local _f = "" 
 local _g = ""
@@ -174,7 +168,6 @@ local _src = _a(table.concat(_o))
 
 ${executor}`;
    } else {
-       // Si elige otro nivel, le decimos que use Pesadilla
        $('status').textContent = '⚠️ Selecciona el nivel PESADILLA para máxima protección.';
        return;
    }
@@ -187,7 +180,7 @@ ${executor}`;
 function validate() {
     const text = input.value;
     if(!text.trim()) return $('status').textContent = 'No hay código.';
-    if(!text.includes("VEXIS | PESADILLA")) return $('status').textContent = '❌ Falta la firma de Vexis.';
+    if(!text.includes("VEXIS PROTECTOR | PESADILLA")) return $('status').textContent = '❌ No es un script de Vexis válido.';
     $('status').textContent = '✅ Estructura válida.';
 }
 
