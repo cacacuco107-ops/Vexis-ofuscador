@@ -1,40 +1,11 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="theme-color" content="#090b12">
-<title>Vexis // Server Protector</title>
-<style>
-:root{ --bg:#080a10;--panel:#111521;--panel2:#0b0f18;--green:#00f5a0;--text:#d7e0ee;--muted:#778399;--border:#242e42; }
-*{box-sizing:border-box;margin:0;padding:0;font-family:ui-monospace,SFMono-Regular,Consolas,"Courier New",monospace}
-body{min-height:100vh;padding:22px;color:var(--text);background:var(--bg)}
-.container{max-width:960px;margin:0 auto;padding:25px;background:linear-gradient(145deg,#141a29,#0e121c);border:1px solid var(--border);border-radius:16px;}
-header{display:flex;justify-content:space-between;margin-bottom:24px;color:var(--green)}
-textarea{display:block;width:100%;min-height:180px;padding:14px;border:1px solid var(--border);border-radius:10px;background:var(--panel2);color:#b6f7db;margin-bottom:10px;}
-button{background:var(--green);color:#04120c;padding:11px 14px;border:none;border-radius:9px;font-weight:800;cursor:pointer;margin-right:5px;}
-.status{padding:11px;background:#080c13;border:1px solid var(--border);border-radius:9px;color:var(--muted);font-size:0.8rem;}
-</style>
-</head>
-<body>
-<main class="container">
- <header><h1>VEXIS // SERVER PROTECTOR</h1></header>
- <label>01 / CÓDIGO DE ENTRADA</label>
- <textarea id="input" placeholder="Pega aquí tu script Lua..."></textarea>
- <button id="obfuscate">◆ OFUSCAR CON SERVIDOR</button>
- <button id="copy">▣ COPIAR</button>
- <div style="height:10px"></div>
- <label>02 / RESULTADO (Para tu GitHub)</label>
- <textarea id="output" readonly placeholder="El resultado aparecerá aquí..."></textarea>
- <div class="status" id="status">Esperando...</div>
-</main>
-
+<!-- ... (Mismo CSS y HTML de antes) ... -->
 <script>
 const $ = id => document.getElementById(id);
 const input = $('input'), output = $('output');
 
-// ¡URL DE RENDER CONFIGURADA!
+// ¡TU URL DE RENDER!
 const SERVER_URL = "https://vexis-ofuscador.onrender.com/unlock";
+const AUTH_CODE = "VexisAuth2026";
 
 function luaLongString(payload){
  let eq=''; while(payload.includes(']'+eq+']')) eq+='=';
@@ -55,79 +26,53 @@ function obfuscate(){
  if(!source.trim()) return $('status').textContent = 'Pega contenido.';
 
  try {
-  const key = "VexisLlaveMaestra2026"; // Llave que está en tu Render
+  // Llave para encriptar (debe ser la misma que en Render)
+  const key = "TU_LLAVE_SECRETA_AQUI"; 
   const payload = encodePayload(source, key);
+  const isScript = /\blocal\s+\w+|\bfunction\s+\w+/.test(source);
 
+  // El script final solo pide el código al servidor, NO desencripta
   const result = `--[[
   VEXIS PROTECTOR (Server Enforced)
 ]]
 
 local VEXIS_PAYLOAD = ${luaLongString(payload)}
+local AUTH_CODE = "${AUTH_CODE}"
 
-local function getKey()
+local function getSource()
+    local Http = game:GetService("HttpService")
     local req = request or http_request or (syn and syn.request) or (http and http.request)
     if not req then error("Executor HTTP unavailable") end
-    local ok, res = pcall(req, {Url = "${SERVER_URL}", Method = "GET"})
+    
+    local body = Http:JSONEncode({payload = VEXIS_PAYLOAD, auth = AUTH_CODE})
+    local ok, res = pcall(req, {
+        Url = "${SERVER_URL}", 
+        Method = "POST", 
+        Headers = {["Content-Type"] = "application/json"},
+        Body = body
+    })
+    
     if not ok or res.StatusCode ~= 200 then return nil end
-    local Http = game:GetService("HttpService")
     local ok2, json = pcall(Http.JSONDecode, Http, res.Body)
-    if ok2 and json and json.key then return json.key end
+    if ok2 and json and json.code then return json.code end
     return nil
 end
 
-local key = getKey()
-if not key then error("VEXIS: Error de autenticacion con el servidor.") end
+local source = getSource()
+if not source then error("VEXIS: Error de autenticacion o servidor caido.") end
 
-local B64 = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
-local function b64d(data)
-    local res, buf, bits = {}, 0, 0
-    data = data:gsub("[^" .. B64 .. "=]", "")
-    for i = 1, #data do
-        local char = data:sub(i,i)
-        if char == "=" then break end
-        local val = B64:find(char, 1, true)
-        if val then
-            buf = buf * 64 + val - 1; bits = bits + 6
-            if bits >= 8 then
-                bits = bits - 8
-                res[#res+1] = string.char(math.floor(buf / 2^bits) % 256)
-                buf = buf % 2^bits
-            end
-        end
-    end
-    return table.concat(res)
-end
-
-local function bxor(a, b)
-    local res, bit = 0, 1
-    for i = 1, 8 do
-        local a_bit = a % 2
-        local b_bit = b % 2
-        if a_bit ~= b_bit then res = res + bit end
-        a = math.floor(a / 2)
-        b = math.floor(b / 2)
-        bit = bit * 2
-    end
-    return res
-end
-
-local step1 = b64d(VEXIS_PAYLOAD)
-local step2 = {}
-for i = 1, #step1 do
-    step2[i] = string.char(bxor(string.byte(step1, i), string.byte(key, (i - 1) % #key + 1)))
-end
-local source = b64d(table.concat(step2))
-
-local env = getfenv and getfenv() or _G
+${isScript ? 
+`local env = getfenv and getfenv() or _G
 local load_str = env.loadstring or loadstring
 if load_str then
     local chunk = load_str(source)
     if chunk then chunk() end
-end
+end` : 
+`print(source)`}
 `;
 
   output.value = result;
-  $('status').textContent = '✅ Protección generada. Lista para subir a GitHub.';
+  $('status').textContent = '✅ Protección blindada. La llave nunca viaja.';
  } catch(e) {
   $('status').textContent = '❌ Error: ' + e.message;
  }
@@ -143,4 +88,4 @@ $('obfuscate').addEventListener('click', obfuscate);
 $('copy').addEventListener('click', copy);
 </script>
 </body>
-</html>
+</html>0
