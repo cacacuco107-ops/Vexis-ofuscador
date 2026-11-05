@@ -4,13 +4,14 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#090b12">
-<title>Vexis // Server Protector</title>
+<title>Vexis // Protector Multinivel</title>
 <style>
 :root{ --bg:#080a10;--panel:#111521;--panel2:#0b0f18;--green:#00f5a0;--text:#d7e0ee;--muted:#778399;--border:#242e42; }
 *{box-sizing:border-box;margin:0;padding:0;font-family:ui-monospace,SFMono-Regular,Consolas,"Courier New",monospace}
 body{min-height:100vh;padding:22px;color:var(--text);background:var(--bg)}
 .container{max-width:960px;margin:0 auto;padding:25px;background:linear-gradient(145deg,#141a29,#0e121c);border:1px solid var(--border);border-radius:16px;}
 header{display:flex;justify-content:space-between;margin-bottom:24px;color:var(--green)}
+select{width:100%;padding:11px 12px;background:var(--panel2);color:var(--text);border:1px solid var(--border);border-radius:9px;outline:none;margin-bottom:15px;}
 textarea{display:block;width:100%;min-height:180px;padding:14px;border:1px solid var(--border);border-radius:10px;background:var(--panel2);color:#b6f7db;margin-bottom:10px;}
 button{background:var(--green);color:#04120c;padding:11px 14px;border:none;border-radius:9px;font-weight:800;cursor:pointer;margin-right:5px;}
 .status{padding:11px;background:#080c13;border:1px solid var(--border);border-radius:9px;color:var(--muted);font-size:0.8rem;}
@@ -18,10 +19,18 @@ button{background:var(--green);color:#04120c;padding:11px 14px;border:none;borde
 </head>
 <body>
 <main class="container">
- <header><h1>VEXIS // SERVER PROTECTOR</h1></header>
+ <header><h1>VEXIS // MULTINIVEL REAL</h1></header>
+ 
+ <label>NIVEL DE OFUSCACIÓN</label>
+ <select id="level">
+   <option value="classic">Clásico (Base64 + Shift +7)</option>
+   <option value="advanced" selected>Avanzado (XOR Dinámico)</option>
+   <option value="extreme">Extremo (XOR + Flattening Real)</option>
+ </select>
+
  <label>01 / CÓDIGO DE ENTRADA</label>
  <textarea id="input" placeholder="Pega aquí tu script Lua..."></textarea>
- <button id="obfuscate">◆ OFUSCAR CON SERVIDOR</button>
+ <button id="obfuscate">◆ OFUSCAR</button>
  <button id="copy">▣ COPIAR</button>
  <div style="height:10px"></div>
  <label>02 / RESULTADO (Para tu GitHub)</label>
@@ -33,94 +42,227 @@ button{background:var(--green);color:#04120c;padding:11px 14px;border:none;borde
 const $ = id => document.getElementById(id);
 const input = $('input'), output = $('output');
 
-// ¡CAMBIA ESTA URL POR LA DE TU RENDER!
-const SERVER_URL = "https://vexis-ofuscador.onrender.com/unlock";
+const BASE64_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+function shiftChar(c, delta) {
+ const idx=BASE64_CHARS.indexOf(c);
+ if(idx===-1) return c;
+ return BASE64_CHARS[(idx+delta+64)%64];
+}
 
 function luaLongString(payload){
  let eq=''; while(payload.includes(']'+eq+']')) eq+='=';
  return '['+eq+'['+payload+']'+eq+']';
 }
 
-function encodePayload(text, key) {
-    let b64 = btoa(unescape(encodeURIComponent(text)));
+function xorString(text, key) {
     let result = "";
-    for (let i = 0; i < b64.length; i++) {
-        result += String.fromCharCode(b64.charCodeAt(i) ^ key.charCodeAt(i % key.length));
+    for (let i = 0; i < text.length; i++) {
+        result += String.fromCharCode(text.charCodeAt(i) ^ key.charCodeAt(i % key.length));
     }
-    return btoa(unescape(encodeURIComponent(result)));
+    return result;
 }
 
 function obfuscate(){
  const source = input.value;
  if(!source.trim()) return $('status').textContent = 'Pega contenido.';
+ const level = $('level').value;
+ const isScript = /\blocal\s+\w+|\bfunction\s+\w+/.test(source);
 
  try {
-  const key = "VexisLlaveMaestra2026"; 
-  const auth = "VexisAuth2026";
-  const payload = encodePayload(source, key);
-  const isScript = /\blocal\s+\w+|\bfunction\s+\w+/.test(source);
+   let result = "";
 
-  const result = `--[[
-  VEXIS PROTECTOR (Server Enforced)
-]]
+   if (level === "classic") {
+       // NIVEL 1: Base64 + Shift +7
+       let b64 = btoa(unescape(encodeURIComponent(source)));
+       let shifted = Array.from(b64).map(c => shiftChar(c, 7)).join('');
+       
+       result = `--[[ VEXIS PROTECTOR | CLASICO ]]
+local VEXIS_DATA = ${luaLongString(shifted)}
+local BASE64_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
 
-local VEXIS_PAYLOAD = ${luaLongString(payload)}
-local AUTH_CODE = "${auth}"
-
-local function getSource()
-    -- Inicializamos HttpService como en el script original
-    local Http = game:GetService("HttpService")
-    
-    -- Usamos el mismo sistema de respaldo que el script original
-    local requestFn = request or http_request or (syn and syn.request) or (http and http.request)
-    
-    if type(requestFn) ~= "function" then 
-        error("VEXIS: Executor HTTP unavailable") 
+local function reverseTransform(data)
+    local result = {}
+    for i = 1, #data do
+        local c = data:sub(i, i)
+        local idx = BASE64_CHARS:find(c, 1, true)
+        if idx then result[i] = BASE64_CHARS:sub(((idx - 1 - 7) % 64) + 1, ((idx - 1 - 7) % 64) + 1)
+        else result[i] = c end
     end
-    
-    local body = Http:JSONEncode({payload = VEXIS_PAYLOAD, auth = AUTH_CODE})
-    
-    local ok, res = pcall(requestFn, {
-        Url = "${SERVER_URL}", 
-        Method = "POST", 
-        Headers = {["Content-Type"] = "application/json"},
-        Body = body
-    })
-    
-    if not ok then 
-        warn("VEXIS: Network Failed - " .. tostring(res))
-        return nil 
-    end
-    
-    if res.StatusCode ~= 200 then 
-        warn("VEXIS: Server Status " .. tostring(res.StatusCode))
-        return nil 
-    end
-    
-    local ok2, json = pcall(Http.JSONDecode, Http, res.Body)
-    if ok2 and json and json.code then return json.code end
-    
-    warn("VEXIS: Invalid JSON Response")
-    return nil
+    return table.concat(result)
 end
 
-local source = getSource()
-if not source then error("VEXIS: Server Error") end
+local function decodeBase64(data)
+    local result, buffer, bits = {}, 0, 0
+    data = data:gsub("[^" .. BASE64_CHARS .. "=]", "")
+    for i = 1, #data do
+        local char = data:sub(i, i)
+        if char == "=" then break end
+        local value = BASE64_CHARS:find(char, 1, true)
+        if not value then error("VEXIS: Base64 corrupto") end
+        buffer = buffer * 64 + value - 1
+        bits = bits + 6
+        if bits >= 8 then
+            bits = bits - 8
+            local divisor = 2 ^ bits
+            result[#result + 1] = string.char(math.floor(buffer / divisor) % 256)
+            buffer = buffer % divisor
+        end
+    end
+    return table.concat(result)
+end
 
-${isScript ? 
-`local env = getfenv and getfenv() or _G
-local load_str = env.loadstring or loadstring
-if load_str then
-    local chunk = load_str(source)
-    if chunk then chunk() end
-end` : 
-`print(source)`}
-`;
+local source = decodeBase64(reverseTransform(VEXIS_DATA))
+${isScript ? `loadstring(source)()` : `print(source)`}`;
 
-  output.value = result;
-  $('status').textContent = '✅ Protección generada. Lista para subir a GitHub.';
+   } else if (level === "advanced") {
+       // NIVEL 2: XOR Dinámico
+       const key = "VexisAvanzado2026";
+       let b64 = btoa(unescape(encodeURIComponent(source)));
+       let encrypted = xorString(b64, key);
+       let payload = btoa(unescape(encodeURIComponent(encrypted)));
+
+       result = `--[[ VEXIS PROTECTOR | AVANZADO ]]
+local VEXIS_DATA = ${luaLongString(payload)}
+local k1 = "Vexis"; local k2 = "Avanzado"; local k3 = "2026"
+local secret_key = k1 .. k2 .. k3
+
+local B64 = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
+local function b64d(data)
+    local res, buf, bits = {}, 0, 0
+    data = data:gsub("[^" .. B64 .. "=]", "")
+    for i = 1, #data do
+        local char = data:sub(i,i)
+        if char == "=" then break end
+        local val = B64:find(char, 1, true)
+        if val then
+            buf = buf * 64 + val - 1; bits = bits + 6
+            if bits >= 8 then
+                bits = bits - 8
+                res[#res+1] = string.char(math.floor(buf / 2^bits) % 256)
+                buf = buf % 2^bits
+            end
+        end
+    end
+    return table.concat(res)
+end
+
+local function bxor(a, b)
+    local res, bit = 0, 1
+    for i = 1, 8 do
+        local a_bit = a % 2
+        local b_bit = b % 2
+        if a_bit ~= b_bit then res = res + bit end
+        a = math.floor(a / 2)
+        b = math.floor(b / 2)
+        bit = bit * 2
+    end
+    return res
+end
+
+local step1 = b64d(VEXIS_DATA)
+local step2 = {}
+for i = 1, #step1 do
+    step2[i] = string.char(bxor(string.byte(step1, i), string.byte(secret_key, (i - 1) % #secret_key + 1)))
+end
+local source = b64d(table.concat(step2))
+
+${isScript ? `loadstring(source)()` : `print(source)`}`;
+
+   } else if (level === "extreme") {
+       // NIVEL 3: XOR + Control Flow Flattening (Basura Real)
+       const key = "VexisExtremo2026";
+       let b64_1 = btoa(unescape(encodeURIComponent(source)));
+       let encrypted = xorString(b64_1, key);
+       let b64_2 = btoa(unescape(encodeURIComponent(encrypted)));
+       
+       let encrypted_2 = xorString(b64_2, "ClaveSecundaria");
+       let payload = btoa(unescape(encodeURIComponent(encrypted_2)));
+
+       result = `--[[ VEXIS PROTECTOR | EXTREMO (VM) ]]
+local VEXIS_DATA = ${luaLongString(payload)}
+
+-- FLATTENING Y OPAQUE PREDICATES
+local v_state = 1
+local v_key_part1 = ""
+local v_key_part2 = ""
+local v_check = 0
+
+-- Bucle de máquina de estados (Confunde a las IAs)
+while v_state ~= 99 do
+    if v_state == 1 then
+        -- Calculos dinamicos reales
+        local time_seed = math.floor(os.time() / 1000) % 10
+        v_check = (math.pi * time_seed) % 2
+        v_state = 2
+    elseif v_state == 2 then
+        -- La llave se arma aquí. Si se saltan este paso, falla.
+        v_key_part1 = "Vexis" .. "Extremo"
+        if v_check == 999.99 then error("FAULT") end
+        v_state = 3
+    elseif v_state == 3 then
+        v_key_part2 = "2026"
+        v_state = 99 -- Rompe el bucle
+    end
+end
+
+local secret_key = v_key_part1 .. v_key_part2
+local secondary_key = "ClaveSecundaria"
+
+local B64 = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
+local function b64d(data)
+    local res, buf, bits = {}, 0, 0
+    data = data:gsub("[^" .. B64 .. "=]", "")
+    for i = 1, #data do
+        local char = data:sub(i,i)
+        if char == "=" then break end
+        local val = B64:find(char, 1, true)
+        if val then
+            buf = buf * 64 + val - 1; bits = bits + 6
+            if bits >= 8 then
+                bits = bits - 8
+                res[#res+1] = string.char(math.floor(buf / 2^bits) % 256)
+                buf = buf % 2^bits
+            end
+        end
+    end
+    return table.concat(res)
+end
+
+local function bxor(a, b)
+    local res, bit = 0, 1
+    for i = 1, 8 do
+        local a_bit = a % 2
+        local b_bit = b % 2
+        if a_bit ~= b_bit then res = res + bit end
+        a = math.floor(a / 2)
+        b = math.floor(b / 2)
+        bit = bit * 2
+    end
+    return res
+end
+
+-- Desencriptación Capa 2
+local step0 = b64d(VEXIS_DATA)
+local step1 = {}
+for i = 1, #step0 do
+    step1[i] = string.char(bxor(string.byte(step0, i), string.byte(secondary_key, (i - 1) % #secondary_key + 1)))
+end
+local b64_2 = b64d(table.concat(step1))
+
+-- Desencriptación Capa 1 (Usa la llave armada en el bucle)
+local step2 = {}
+for i = 1, #b64_2 do
+    step2[i] = string.char(bxor(string.byte(b64_2, i), string.byte(secret_key, (i - 1) % #secret_key + 1)))
+end
+local source = b64d(table.concat(step2))
+
+${isScript ? `loadstring(source)()` : `print(source)`}`;
+   }
+
+   output.value = result;
+   $('status').textContent = '✅ Protección ' + level.toUpperCase() + ' generada.';
  } catch(e) {
-  $('status').textContent = '❌ Error: ' + e.message;
+   $('status').textContent = '❌ Error: ' + e.message;
  }
 }
 
