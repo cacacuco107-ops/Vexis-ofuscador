@@ -33,8 +33,8 @@ button{background:var(--green);color:#04120c;padding:11px 14px;border:none;borde
 const $ = id => document.getElementById(id);
 const input = $('input'), output = $('output');
 
-// ¡CAMBIA ESTA URL POR LA DE TU RENDER!
-const SERVER_URL = "https://tu-url-de-render.onrender.com/unlock";
+// ¡URL DE RENDER CONFIGURADA!
+const SERVER_URL = "https://vexis-ofuscador.onrender.com/unlock";
 
 function luaLongString(payload){
  let eq=''; while(payload.includes(']'+eq+']')) eq+='=';
@@ -55,7 +55,7 @@ function obfuscate(){
  if(!source.trim()) return $('status').textContent = 'Pega contenido.';
 
  try {
-  const key = "VexisLlaveMaestra2026";
+  const key = "VexisLlaveMaestra2026"; // Llave que está en tu Render
   const payload = encodePayload(source, key);
 
   const result = `--[[
