@@ -30,7 +30,7 @@ button{border:none;border-radius:9px;font-weight:800;cursor:pointer;padding:11px
  
  <label>NIVEL DE OFUSCACIÓN</label>
  <select id="level">
-   <option value="ultra5" selected>Ultra 5X (Quintuple XOR + Junk)</option>
+   <option value="ultra5" selected>Ultra 5X (Quintuple XOR)</option>
  </select>
 
  <label>01 / CÓDIGO O TEXTO</label>
@@ -73,21 +73,6 @@ function luaLongString(payload){
  return '['+eq+'['+payload+']'+eq+']';
 }
 
-// Generar ruido (Junk Code) ARREGLADO
-function generateJunkCode() {
-    let junk = "";
-    for (let i = 0; i < 8; i++) {
-        let randVar = "v" + Math.floor(Math.random() * 10000);
-        let randNum = Math.floor(Math.random() * 100) + 1; 
-        let randLoop = Math.floor(Math.random() * 4) + 1;  
-        
-        junk += `local ${randVar} = ${randNum}\n`;
-        junk += `if ${randVar} > 50 then ${randVar} = ${randVar} - 10 end\n`;
-        junk += `for i=1, ${randLoop} do local _ = i end\n`; 
-    }
-    return junk;
-}
-
 // ============ LÓGICA DE OFUSCAR ============
 function obfuscate(){
  const source = input.value;
@@ -115,11 +100,9 @@ function obfuscate(){
    let enc_5 = xorString(enc_4, key5);
    let finalPayload = b64e(enc_5);
 
-   let junkCode = generateJunkCode();
-
+   // Se eliminó el Junk Code
    result = `--[[ VEXIS ULTRA 5X PROTECTOR | ANTI-IA ]]
 -- PROTECTED ASSET | DO NOT DISTRIBUTE
-${junkCode}
 local _d = ${luaLongString(finalPayload)}
 local _k1 = "${key1}"
 local _k2 = "${key2}"
@@ -221,17 +204,19 @@ function deobfuscate() {
     }
 }
 
-// ============ LÓGICA DE VALIDAR ============
+// ============ LÓGICA DE VALIDAR (ARREGLADO) ============
 function validate() {
-    const text = input.value;
-    if(!text.trim()) return $('status').textContent = '⚠️ No hay código para validar.';
+    // Ahora valida el resultado (la caja de abajo)
+    const text = output.value;
+    
+    if(!text.trim()) return $('status').textContent = '⚠️ No hay resultado generado para validar.';
     
     if(!text.includes("VEXIS ULTRA 5X PROTECTOR")) {
-        return $('status').textContent = '❌ No es un script protegido por VEXIS.';
+        return $('status').textContent = '❌ El resultado no tiene la firma de VEXIS.';
     }
 
     if(text.includes("local _d =") && text.includes("local _k1 =") && text.includes("local _k5 =")) {
-        $('status').textContent = '✅ Estructura VEXIS ULTRA válida y completa.';
+        $('status').textContent = '✅ Estructura VEXIS ULTRA válida. El script compilará bien.';
     } else {
         $('status').textContent = '⚠️ Tiene la firma, pero le falta el payload o las llaves.';
     }
