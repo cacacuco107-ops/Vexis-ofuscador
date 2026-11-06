@@ -73,15 +73,17 @@ function luaLongString(payload){
  return '['+eq+'['+payload+']'+eq+']';
 }
 
-// Generar ruido (Junk Code)
+// Generar ruido (Junk Code) ARREGLADO
 function generateJunkCode() {
     let junk = "";
     for (let i = 0; i < 8; i++) {
         let randVar = "v" + Math.floor(Math.random() * 10000);
-        let randNum = Math.floor(Math.random() * 100);
+        let randNum = Math.floor(Math.random() * 100) + 1; 
+        let randLoop = Math.floor(Math.random() * 4) + 1;  
+        
         junk += `local ${randVar} = ${randNum}\n`;
         junk += `if ${randVar} > 50 then ${randVar} = ${randVar} - 10 end\n`;
-        junk += `for i=1, ${randVar % 5} do local _ = i end\n`;
+        junk += `for i=1, ${randLoop} do local _ = i end\n`; 
     }
     return junk;
 }
@@ -91,7 +93,6 @@ function obfuscate(){
  const source = input.value;
  if(!source.trim()) return $('status').textContent = '⚠️ Pega un contenido primero.';
  
- // Validar si ya está ofuscado buscando la firma exacta
  if (source.includes("VEXIS ULTRA 5X PROTECTOR")) {
      return $('status').textContent = '❌ Este código ya está protegido.';
  }
@@ -99,7 +100,6 @@ function obfuscate(){
  try {
    let result = "";
    
-   // 5 Llaves dinámicas basadas en el tiempo
    const now = new Date();
    const key1 = "A" + now.getTime(); 
    const key2 = "B" + (now.getTime() + 1);
@@ -107,7 +107,6 @@ function obfuscate(){
    const key4 = "D" + (now.getTime() + 3);
    const key5 = "E" + (now.getTime() + 4);
 
-   // 1. Base64 -> 2. XOR k1 -> 3. XOR k2 -> 4. XOR k3 -> 5. XOR k4 -> 6. XOR k5 -> 7. Base64 final
    let b64_1 = b64e(source);
    let enc_1 = xorString(b64_1, key1);
    let enc_2 = xorString(enc_1, key2);
@@ -165,7 +164,6 @@ local function _unxor(t, k)
     return table.concat(res)
 end
 
--- Desencriptar 5 capas
 local _step5 = _a(_d)
 local _step4 = _unxor(_step5, _k5)
 local _step3 = _unxor(_step4, _k4)
@@ -196,12 +194,10 @@ function deobfuscate() {
     }
 
     try {
-        // Extraer payload y llaves
         let match = source.match(/local _d = \[(=*)\[(.*?)\]\1\]/s);
         if (!match) return $('status').textContent = '❌ No se encontró el payload.';
         let payload = match[2];
 
-        // Extraer las 5 llaves
         let k1_match = source.match(/local _k1 = "(.*?)"/);
         let k2_match = source.match(/local _k2 = "(.*?)"/);
         let k3_match = source.match(/local _k3 = "(.*?)"/);
@@ -210,7 +206,6 @@ function deobfuscate() {
         
         if (!k1_match || !k2_match || !k3_match || !k4_match || !k5_match) return $('status').textContent = '❌ No se encontraron todas las llaves.';
 
-        // Deshacer el proceso en reversa
         let dec_5 = b64d(payload); 
         let dec_4 = xorString(dec_5, k5_match[1]); 
         let dec_3 = xorString(dec_4, k4_match[1]); 
@@ -226,17 +221,15 @@ function deobfuscate() {
     }
 }
 
-// ============ LÓGICA DE VALIDAR (CORREGIDA) ============
+// ============ LÓGICA DE VALIDAR ============
 function validate() {
     const text = input.value;
     if(!text.trim()) return $('status').textContent = '⚠️ No hay código para validar.';
     
-    // Busca la firma exacta que genera el ofuscador
     if(!text.includes("VEXIS ULTRA 5X PROTECTOR")) {
         return $('status').textContent = '❌ No es un script protegido por VEXIS.';
     }
 
-    // Verifica que tenga el payload y las 5 llaves
     if(text.includes("local _d =") && text.includes("local _k1 =") && text.includes("local _k5 =")) {
         $('status').textContent = '✅ Estructura VEXIS ULTRA válida y completa.';
     } else {
