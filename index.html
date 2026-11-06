@@ -91,6 +91,7 @@ function obfuscate(){
  const source = input.value;
  if(!source.trim()) return $('status').textContent = '⚠️ Pega un contenido primero.';
  
+ // Validar si ya está ofuscado buscando la firma exacta
  if (source.includes("VEXIS ULTRA 5X PROTECTOR")) {
      return $('status').textContent = '❌ Este código ya está protegido.';
  }
@@ -225,21 +226,32 @@ function deobfuscate() {
     }
 }
 
+// ============ LÓGICA DE VALIDAR (CORREGIDA) ============
 function validate() {
     const text = input.value;
-    if(!text.trim()) return $('status').textContent = 'No hay código.';
-    if(!text.includes("VEXIS ULTRA 5X PROTECTOR")) return $('status').textContent = '❌ No es un script válido.';
-    $('status').textContent = '✅ Estructura válida.';
+    if(!text.trim()) return $('status').textContent = '⚠️ No hay código para validar.';
+    
+    // Busca la firma exacta que genera el ofuscador
+    if(!text.includes("VEXIS ULTRA 5X PROTECTOR")) {
+        return $('status').textContent = '❌ No es un script protegido por VEXIS.';
+    }
+
+    // Verifica que tenga el payload y las 5 llaves
+    if(text.includes("local _d =") && text.includes("local _k1 =") && text.includes("local _k5 =")) {
+        $('status').textContent = '✅ Estructura VEXIS ULTRA válida y completa.';
+    } else {
+        $('status').textContent = '⚠️ Tiene la firma, pero le falta el payload o las llaves.';
+    }
 }
 
 async function copy(){
  if(!output.value) return;
  await navigator.clipboard.writeText(output.value);
- $('status').textContent = '📋 Copiado.';
+ $('status').textContent = '📋 Copiado al portapapeles.';
 }
 
 function download() {
- if(!output.value.trim()) return $('status').textContent = 'No hay resultado.';
+ if(!output.value.trim()) return $('status').textContent = 'No hay resultado para descargar.';
  const blob = new Blob([output.value], {type: 'text/plain;charset=utf-8'});
  const url = URL.createObjectURL(blob), a = document.createElement('a');
  a.href = url; a.download = 'Vexis_Ultra_5X.lua';
