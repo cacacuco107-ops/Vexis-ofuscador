@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#090b12">
-<title>Vexis // Protector Multinivel</title>
+<title>Vexis // Ultra Protector 5X</title>
 <style>
 :root{ --bg:#080a10;--panel:#111521;--panel2:#0b0f18;--green:#00f5a0;--text:#d7e0ee;--muted:#778399;--border:#242e42; --purple:#9b70ff; --red:#ff637d; --yellow:#ffd166; }
 *{box-sizing:border-box;margin:0;padding:0;font-family:ui-monospace,SFMono-Regular,Consolas,"Courier New",monospace}
@@ -26,18 +26,15 @@ button{border:none;border-radius:9px;font-weight:800;cursor:pointer;padding:11px
 </head>
 <body>
 <main class="container">
- <header><h1>VEXIS // MULTINIVEL</h1></header>
+ <header><h1>VEXIS // ULTRA 5X</h1></header>
  
  <label>NIVEL DE OFUSCACIÓN</label>
  <select id="level">
-   <option value="classic">Clásico (Base64 + Shift +7)</option>
-   <option value="advanced">Avanzado (XOR Dinámico)</option>
-   <option value="extreme">Extremo (XOR + Flattening Real)</option>
-   <option value="nightmare" selected>Pesadilla (Anti-Todas las IAs)</option>
+   <option value="ultra5" selected>Ultra 5X (Quintuple XOR + Junk)</option>
  </select>
 
  <label>01 / CÓDIGO O TEXTO</label>
- <textarea id="input" placeholder="Pega aquí tu script Lua..."></textarea>
+ <textarea id="input" placeholder="Pega aquí tu script Lua o el código protegido..."></textarea>
  
  <div class="actions">
    <button class="btn-obf" id="obfuscate">◆ OFUSCAR</button>
@@ -57,14 +54,11 @@ button{border:none;border-radius:9px;font-weight:800;cursor:pointer;padding:11px
 const $ = id => document.getElementById(id);
 const input = $('input'), output = $('output');
 
-function isLuaScript(source) {
- const luaPatterns = [/\blocal\s+\w+/, /\bfunction\s+\w+/, /\bend\b/, /\breturn\b/, /game:GetService/, /Instance\.new/, /pcall\s*\(/];
- let matches = 0; for(const p of luaPatterns) if(p.test(source)) matches++;
- return matches >= 2;
-}
+// Base64
+function b64e(str) { return btoa(unescape(encodeURIComponent(str))); }
+function b64d(str) { return decodeURIComponent(escape(atob(str))); }
 
-const BASE64_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
-
+// XOR Dinámico
 function xorString(text, key) {
     let result = "";
     for (let i = 0; i < text.length; i++) {
@@ -72,43 +66,67 @@ function xorString(text, key) {
     }
     return result;
 }
-function b64e(str) { return btoa(unescape(encodeURIComponent(str))); }
-function b64d(str) { return decodeURIComponent(escape(atob(str))); }
 
-function encodeNightmare(text) {
-    const date = new Date();
-    const key = "V" + (date.getFullYear() * (date.getMonth() + 1) * date.getDate());
-    let b64_1 = b64e(text);
-    let enc_1 = xorString(b64_1, key);
-    let b64_2 = b64e(enc_1);
-    let enc_2 = xorString(b64_2, "X");
-    return b64e(enc_2);
-}
-
+// Formatear para Lua
 function luaLongString(payload){
  let eq=''; while(payload.includes(']'+eq+']')) eq+='=';
  return '['+eq+'['+payload+']'+eq+']';
 }
 
+// Generar ruido (Junk Code)
+function generateJunkCode() {
+    let junk = "";
+    for (let i = 0; i < 8; i++) {
+        let randVar = "v" + Math.floor(Math.random() * 10000);
+        let randNum = Math.floor(Math.random() * 100);
+        junk += `local ${randVar} = ${randNum}\n`;
+        junk += `if ${randVar} > 50 then ${randVar} = ${randVar} - 10 end\n`;
+        junk += `for i=1, ${randVar % 5} do local _ = i end\n`;
+    }
+    return junk;
+}
+
+// ============ LÓGICA DE OFUSCAR ============
 function obfuscate(){
  const source = input.value;
- if(!source.trim()) return $('status').textContent = 'Pega contenido.';
- const level = $('level').value;
- const isScript = isLuaScript(source);
+ if(!source.trim()) return $('status').textContent = '⚠️ Pega un contenido primero.';
+ 
+ if (source.includes("VEXIS ULTRA 5X PROTECTOR")) {
+     return $('status').textContent = '❌ Este código ya está protegido.';
+ }
 
  try {
    let result = "";
-   let modeTag = isScript ? 'SCRIPT LUA' : 'TEXTO/JSON';
    
-   const executor = isScript 
-       ? `local _env = getfenv and getfenv() or _G\nlocal _ls = _env.loadstring or loadstring\nif _ls then local _c = _ls(_src) if _c then _c() end end`
-       : `print("--- VEXIS DATA ---")\nprint(_src)\nprint("------------------")`;
+   // 5 Llaves dinámicas basadas en el tiempo
+   const now = new Date();
+   const key1 = "A" + now.getTime(); 
+   const key2 = "B" + (now.getTime() + 1);
+   const key3 = "C" + (now.getTime() + 2);
+   const key4 = "D" + (now.getTime() + 3);
+   const key5 = "E" + (now.getTime() + 4);
 
-   if (level === "nightmare") {
-       let payload = encodeNightmare(source);
-       
-       result = `--[[ VEXIS PROTECTOR | PESADILLA | ${modeTag} ]]
-local _d = ${luaLongString(payload)}
+   // 1. Base64 -> 2. XOR k1 -> 3. XOR k2 -> 4. XOR k3 -> 5. XOR k4 -> 6. XOR k5 -> 7. Base64 final
+   let b64_1 = b64e(source);
+   let enc_1 = xorString(b64_1, key1);
+   let enc_2 = xorString(enc_1, key2);
+   let enc_3 = xorString(enc_2, key3);
+   let enc_4 = xorString(enc_3, key4);
+   let enc_5 = xorString(enc_4, key5);
+   let finalPayload = b64e(enc_5);
+
+   let junkCode = generateJunkCode();
+
+   result = `--[[ VEXIS ULTRA 5X PROTECTOR | ANTI-IA ]]
+-- PROTECTED ASSET | DO NOT DISTRIBUTE
+${junkCode}
+local _d = ${luaLongString(finalPayload)}
+local _k1 = "${key1}"
+local _k2 = "${key2}"
+local _k3 = "${key3}"
+local _k4 = "${key4}"
+local _k5 = "${key5}"
+
 local function _a(b)
     local c, d, e = {}, 0, 0
     b = b:gsub("[^ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=]", "")
@@ -138,49 +156,79 @@ local function _b(c, k)
     return d
 end
 
-local _e = 1
-local _f = "" 
-local _g = ""
-while _e ~= 99 do
-    if _e == 1 then
-        local _h = os.date("*t")
-        local _i = _h.year * (_h.month + 1) * _h.day
-        _f = "V" .. tostring(_i)
-        _e = 2
-    elseif _e == 2 then
-        _g = "X"
-        _e = 99
+local function _unxor(t, k)
+    local res = {}
+    for i = 1, #t do
+        res[i] = string.char(_b(string.byte(t, i), string.byte(k, (i - 1) % #k + 1)))
     end
+    return table.concat(res)
 end
 
-local _k = _a(_d)
-local _l = {}
-for m = 1, #_k do
-    _l[m] = string.char(_b(string.byte(_k, m), string.byte(_g, (m - 1) % #_g + 1)))
-end
-local _n = _a(table.concat(_l))
+-- Desencriptar 5 capas
+local _step5 = _a(_d)
+local _step4 = _unxor(_step5, _k5)
+local _step3 = _unxor(_step4, _k4)
+local _step2 = _unxor(_step3, _k3)
+local _step1 = _unxor(_step2, _k2)
+local _decrypted_b64 = _unxor(_step1, _k1)
+local _src = _a(_decrypted_b64)
 
-local _o = {}
-for m = 1, #_n do
-    _o[m] = string.char(_b(string.byte(_n, m), string.byte(_f, (m - 1) % #_f + 1)))
-end
-local _src = _a(table.concat(_o))
+local _env = getfenv and getfenv() or _G
+local _ls = _env.loadstring or loadstring
+if _ls then 
+    local _c = _ls(_src) 
+    if _c then _c() end 
+end`;
 
-${executor}`;
-   } else {
-       $('status').textContent = '⚠️ Selecciona el nivel PESADILLA para máxima protección.';
-       return;
-   }
-   
    output.value = result;
-   $('status').textContent = `✅ Protección PESADILLA generada. Modo: ${modeTag}`;
+   $('status').textContent = `✅ Protección ULTRA 5X generada.`;
  } catch(e) { $('status').textContent = '❌ Error: ' + e.message; }
+}
+
+// ============ LÓGICA DE DESOFUSCAR ============
+function deobfuscate() {
+    let source = input.value;
+    if (!source.trim()) return $('status').textContent = '⚠️ Pega un script protegido primero.';
+
+    if (!source.includes("VEXIS ULTRA 5X PROTECTOR")) {
+        return $('status').textContent = '❌ Este script no fue protegido con VEXIS ULTRA 5X.';
+    }
+
+    try {
+        // Extraer payload y llaves
+        let match = source.match(/local _d = \[(=*)\[(.*?)\]\1\]/s);
+        if (!match) return $('status').textContent = '❌ No se encontró el payload.';
+        let payload = match[2];
+
+        // Extraer las 5 llaves
+        let k1_match = source.match(/local _k1 = "(.*?)"/);
+        let k2_match = source.match(/local _k2 = "(.*?)"/);
+        let k3_match = source.match(/local _k3 = "(.*?)"/);
+        let k4_match = source.match(/local _k4 = "(.*?)"/);
+        let k5_match = source.match(/local _k5 = "(.*?)"/);
+        
+        if (!k1_match || !k2_match || !k3_match || !k4_match || !k5_match) return $('status').textContent = '❌ No se encontraron todas las llaves.';
+
+        // Deshacer el proceso en reversa
+        let dec_5 = b64d(payload); 
+        let dec_4 = xorString(dec_5, k5_match[1]); 
+        let dec_3 = xorString(dec_4, k4_match[1]); 
+        let dec_2 = xorString(dec_3, k3_match[1]); 
+        let dec_1 = xorString(dec_2, k2_match[1]); 
+        let dec_0 = xorString(dec_1, k1_match[1]); 
+        let original = b64d(dec_0); 
+
+        output.value = original;
+        $('status').textContent = '✅ Desofuscado correctamente.';
+    } catch (e) {
+        $('status').textContent = '❌ Error al desofuscar: ' + e.message;
+    }
 }
 
 function validate() {
     const text = input.value;
     if(!text.trim()) return $('status').textContent = 'No hay código.';
-    if(!text.includes("VEXIS PROTECTOR | PESADILLA")) return $('status').textContent = '❌ No es un script de Vexis válido.';
+    if(!text.includes("VEXIS ULTRA 5X PROTECTOR")) return $('status').textContent = '❌ No es un script válido.';
     $('status').textContent = '✅ Estructura válida.';
 }
 
@@ -194,7 +242,7 @@ function download() {
  if(!output.value.trim()) return $('status').textContent = 'No hay resultado.';
  const blob = new Blob([output.value], {type: 'text/plain;charset=utf-8'});
  const url = URL.createObjectURL(blob), a = document.createElement('a');
- a.href = url; a.download = 'Vexis_Protected.lua';
+ a.href = url; a.download = 'Vexis_Ultra_5X.lua';
  document.body.appendChild(a); a.click(); a.remove();
  setTimeout(() => URL.revokeObjectURL(url), 1000);
  $('status').textContent = '📥 Archivo descargado.';
@@ -206,6 +254,7 @@ function clear(){
 }
 
 $('obfuscate').addEventListener('click', obfuscate);
+$('deobfuscate').addEventListener('click', deobfuscate);
 $('validate').addEventListener('click', validate);
 $('copy').addEventListener('click', copy);
 $('download').addEventListener('click', download);
